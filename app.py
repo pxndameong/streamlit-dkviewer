@@ -185,7 +185,7 @@ with tab_map:
 
     fig_net = go.Figure()
     if show_raw and not catalog.empty:
-        fig_net.add_trace(go.Scattermapbox(
+        fig_net.add_trace(go.Scattermap(
             lat=catalog["lat"],
             lon=catalog["long"],
             mode="markers",
@@ -199,7 +199,7 @@ with tab_map:
         ))
 
     train_pts = grid_summary[~grid_summary["is_test_point"]]
-    fig_net.add_trace(go.Scattermapbox(
+    fig_net.add_trace(go.Scattermap(
         lat=train_pts["lat"],
         lon=train_pts["lon"],
         mode="markers",
@@ -213,7 +213,7 @@ with tab_map:
     ))
 
     test_pts = grid_summary[grid_summary["is_test_point"]].sort_values("point_id")
-    fig_net.add_trace(go.Scattermapbox(
+    fig_net.add_trace(go.Scattermap(
         lat=test_pts["lat"],
         lon=test_pts["lon"],
         mode="markers+text",
@@ -230,8 +230,7 @@ with tab_map:
     ))
 
     fig_net.update_layout(
-        mapbox_style="open-street-map",
-        mapbox=dict(center=dict(lat=-7.25, lon=109.8), zoom=6.2),
+        map=dict(style="open-street-map", center=dict(lat=-7.25, lon=109.8), zoom=6.2),
         margin=dict(l=0, r=0, t=10, b=0),
         height=520,
         legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="left", x=0),

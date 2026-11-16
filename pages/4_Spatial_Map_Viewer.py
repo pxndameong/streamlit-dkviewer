@@ -148,13 +148,13 @@ def _plot_contour_plotly(df_pts: pd.DataFrame, val_col: str, title: str, ztitle:
     return fig
 
 
-def _plot_mapbox(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
+def _plot_osm_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
     cmin, cmax = None, None
     if symmetric:
         vmax = float(df_pts[val_col].abs().max())
         cmin, cmax = -vmax, vmax
     fig = go.Figure()
-    fig.add_trace(go.Scattermapbox(
+    fig.add_trace(go.Scattermap(
         lat=df_pts["lat"],
         lon=df_pts["lon"],
         mode="markers",
@@ -174,7 +174,7 @@ def _plot_mapbox(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cs
     ))
     if overlay_obs and not obs_slice.empty:
         tp = obs_slice[obs_slice["is_test_point"]]
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Scattermap(
             lat=tp["lat"],
             lon=tp["lon"],
             mode="markers+text",
@@ -187,8 +187,7 @@ def _plot_mapbox(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cs
         ))
     fig.update_layout(
         title=title,
-        mapbox_style="open-street-map",
-        mapbox=dict(center=dict(lat=-7.25, lon=109.8), zoom=6.1),
+        map=dict(style="open-street-map", center=dict(lat=-7.25, lon=109.8), zoom=6.1),
         margin=dict(l=0, r=0, t=40, b=0),
         height=490,
     )
@@ -202,7 +201,7 @@ if view_mode == "Single Model Map":
     mk = st.sidebar.selectbox("Select Model", MODEL_ORDER, index=4, format_func=lambda k: MODEL_SPECS[k]["label"])
     pcol = MODEL_SPECS[mk]["pred_col"]
     title = f"{MODEL_SPECS[mk]['label']} — {time_label}"
-    fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
+    fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
     st.plotly_chart(fig, use_container_width=True)
 
     # Spatial summary KPIs
@@ -238,7 +237,7 @@ elif view_mode == "Compare Models Side-by-Side":
         pcol = MODEL_SPECS[mk]["pred_col"]
         title = f"{MODEL_SPECS[mk]['short']} — {time_label}"
         with cols[i % 2]:
-            fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
+            fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
             st.plotly_chart(fig, use_container_width=True)
 
 elif view_mode == "Difference Between Models (A − B)":
@@ -254,7 +253,7 @@ elif view_mode == "Difference Between Models (A − B)":
     fig = (
         _plot_contour_plotly(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
         if render_style.startswith("Smooth")
-        else _plot_mapbox(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
+        else _plot_osm_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
     )
     st.plotly_chart(fig, use_container_width=True)
     st.caption(
@@ -284,7 +283,7 @@ else:
     fig = (
         _plot_contour_plotly(era_slice, cov_choice, title, unit, cscale="Viridis")
         if render_style.startswith("Smooth")
-        else _plot_mapbox(era_slice, cov_choice, title, unit, cscale="Viridis")
+        else _plot_osm_map(era_slice, cov_choice, title, unit, cscale="Viridis")
     )
     st.plotly_chart(fig, use_container_width=True)
 
