@@ -192,12 +192,12 @@ with tab_ts:
                 line=dict(color=spec["color"], width=1.6),
             ))
         if ts_mode.startswith("Prediction Bias"):
-            fig_err_ts.add_hline(y=0, line_dash="dash", line_color="#0F172A", line_width=1)
+            fig_err_ts.add_hline(y=0, line_dash="dash", line_color="#A1A1AA", line_width=1)
         fig_err_ts.update_layout(
             title=f"{ts_mode} — {scope_title}",
-            template="plotly_white",
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             hovermode="x unified",
             xaxis_title="Date",
             yaxis_title="Error (mm)",
@@ -234,14 +234,14 @@ with tab_res:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Error Spread (Pred − Obs)",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_box.add_hline(y=0, line_dash="dash", line_color="#0F172A")
+        fig_box.add_hline(y=0, line_dash="dash", line_color="#A1A1AA")
         fig_box.update_layout(
             showlegend=False,
             height=420,
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
         )
         st.plotly_chart(fig_box, use_container_width=True)
 
@@ -252,14 +252,14 @@ with tab_res:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="How Often Error Stays Below X mm",
-            template="plotly_white",
+            template="plotly_dark",
         )
         fig_ecdf.update_layout(
             xaxis_title="Absolute Error |Pred − Obs| (mm)",
             yaxis_title="Share of Data",
             height=420,
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
         )
         st.plotly_chart(fig_ecdf, use_container_width=True)
 
@@ -304,9 +304,9 @@ with tab_pts:
             aspect="auto",
             color_continuous_scale="RdYlGn" if metric_choice in ("R2", "KGE") else "YlOrRd",
             title=f"{metric_choice} by Test Station ({y_start}–{y_end})",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_hm.update_layout(height=420, paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF")
+        fig_hm.update_layout(height=420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_hm, use_container_width=True)
         download_csv_button(df_pt, "per_station_metrics.csv", "⬇️ Download Per-Station Metrics CSV")
 

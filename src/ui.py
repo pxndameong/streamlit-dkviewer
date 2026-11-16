@@ -23,6 +23,12 @@ def inject_custom_css() -> None:
             padding: 12px 16px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         }
+        div[data-testid="stPlotlyChart"] {
+            background-color: #1A1A1D;
+            border: 1px solid #2E2E32;
+            border-radius: 10px;
+            padding: 6px 8px;
+        }
         .dk-badge {
             display: inline-block;
             padding: 3px 10px;

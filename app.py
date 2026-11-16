@@ -136,9 +136,9 @@ with tab_leader:
         fig_err.update_layout(
             title="Prediction Error by Model (Lower is Better)",
             barmode="group",
-            template="plotly_white",
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             yaxis_title="mm / month",
             height=380,
         )
@@ -165,9 +165,9 @@ with tab_leader:
         fig_skill.update_layout(
             title="Accuracy Scores by Model (Higher is Better)",
             barmode="group",
-            template="plotly_white",
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             yaxis_title="Score",
             yaxis=dict(range=[0, 1.05]),
             height=380,
