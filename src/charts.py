@@ -8,10 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from src.config import MODEL_SPECS, OBS_COLOR
+from src.config import MODEL_SPECS
 from src.metrics import compute_metrics
-
-PLOT_TEMPLATE = "plotly_dark"
+from src.theme import get_theme_palette
 
 
 def make_scatter_comparison(
@@ -20,6 +19,7 @@ def make_scatter_comparison(
     obs_col: str = "monthly_rainfall",
     title: str = "Observed vs Predicted Monthly Rainfall",
 ) -> go.Figure:
+    p = get_theme_palette()
     n = len(model_keys)
     cols = min(n, 3)
     rows = int(np.ceil(n / cols))
@@ -106,17 +106,17 @@ def make_scatter_comparison(
             text=annot_text,
             showarrow=False,
             align="right",
-            bgcolor="rgba(24, 24, 27, 0.90)",
-            bordercolor="#3F3F46",
+            bgcolor=p["annot_bg"],
+            bordercolor=p["border_strong"],
             borderwidth=1,
-            font=dict(size=10, color="#F4F4F5"),
+            font=dict(size=10, color=p["text"]),
         )
         fig.update_xaxes(title_text="Observed (mm)", range=[0, limit], row=r, col=c)
         fig.update_yaxes(title_text="Predicted (mm)", range=[0, limit], row=r, col=c)
 
     fig.update_layout(
         title=title,
-        template=PLOT_TEMPLATE,
+        template=p["plotly_template"],
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=390 * rows,
@@ -132,6 +132,7 @@ def make_timeseries_figure(
     show_obs: bool = True,
     title: str = "Monthly Rainfall Time Series",
 ) -> go.Figure:
+    p = get_theme_palette()
     fig = go.Figure()
     if show_obs and obs_col in df_agg.columns:
         fig.add_trace(
@@ -140,7 +141,7 @@ def make_timeseries_figure(
                 y=df_agg[obs_col],
                 mode="lines+markers",
                 name="Observed Rainfall",
-                line=dict(color=OBS_COLOR, width=2.4),
+                line=dict(color=p["obs_color"], width=2.4),
                 marker=dict(size=4),
             )
         )
@@ -157,7 +158,7 @@ def make_timeseries_figure(
         )
     fig.update_layout(
         title=title,
-        template=PLOT_TEMPLATE,
+        template=p["plotly_template"],
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hovermode="x unified",

@@ -24,6 +24,7 @@ from src.data_loader import (
     load_station_catalog,
 )
 from src.metrics import evaluate_models_table
+from src.theme import get_plotly_template, get_theme_palette
 from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 
@@ -141,7 +142,7 @@ def show_overview() -> None:
             fig_err.update_layout(
                 title="Prediction Error by Model (Lower is Better)",
                 barmode="group",
-                template="plotly_dark",
+                template=get_plotly_template(),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
                 yaxis_title="mm / month",
@@ -170,7 +171,7 @@ def show_overview() -> None:
             fig_skill.update_layout(
                 title="Accuracy Scores by Model (Higher is Better)",
                 barmode="group",
-                template="plotly_dark",
+                template=get_plotly_template(),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
                 yaxis_title="Score",
@@ -221,6 +222,7 @@ def show_overview() -> None:
             hoverinfo="text",
         ))
 
+        p = get_theme_palette()
         test_pts = grid_summary[grid_summary["is_test_point"]].sort_values("point_id")
         fig_net.add_trace(go.Scattermap(
             lat=test_pts["lat"],
@@ -229,7 +231,7 @@ def show_overview() -> None:
             marker=dict(size=14, color="#DC2626"),
             text=[f"S{r['point_id']}" for _, r in test_pts.iterrows()],
             textposition="top right",
-            textfont=dict(size=11, color="#FCA5A5"),
+            textfont=dict(size=11, color=p["test_label_color"]),
             name="9 Test Stations",
             hovertext=[
                 f"Station {r['point_id']}: {r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
@@ -239,9 +241,9 @@ def show_overview() -> None:
         ))
 
         fig_net.update_layout(
-            template="plotly_dark",
+            template=p["plotly_template"],
             paper_bgcolor="rgba(0,0,0,0)",
-            map=dict(style="carto-darkmatter", center=dict(lat=-7.25, lon=109.8), zoom=6.2),
+            map=dict(style=p["map_style"], center=dict(lat=-7.25, lon=109.8), zoom=6.2),
             margin=dict(l=0, r=0, t=10, b=0),
             height=520,
             legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="left", x=0),

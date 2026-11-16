@@ -17,6 +17,7 @@ import streamlit as st
 
 from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
 from src.data_loader import load_era5_grid, load_paired_obs, load_predictions
+from src.theme import get_plotly_template, get_theme_palette
 from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 st.set_page_config(
@@ -74,10 +75,17 @@ render_style = st.sidebar.radio(
 )
 basemap_choice = st.sidebar.radio(
     "Base Map",
-    ["Dark Map (Carto)", "Street Map (OSM)"],
+    ["Auto (Follow Theme)", "Dark Map (Carto)", "Light Map (Carto)", "Street Map (OSM)"],
     key="map_basemap",
 )
-basemap_style = "carto-darkmatter" if basemap_choice.startswith("Dark") else "open-street-map"
+if basemap_choice.startswith("Auto"):
+    basemap_style = get_theme_palette()["map_style"]
+elif basemap_choice.startswith("Dark"):
+    basemap_style = "carto-darkmatter"
+elif basemap_choice.startswith("Light"):
+    basemap_style = "carto-positron"
+else:
+    basemap_style = "open-street-map"
 overlay_obs = st.sidebar.checkbox("Show 9 Test Stations on Map", value=True, key="map_overlay")
 
 # Filter temporal slice
@@ -181,7 +189,7 @@ def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str
 
     fig.update_layout(
         title=title,
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         map=dict(
             style=basemap_style,
@@ -274,7 +282,7 @@ def _plot_grid_box_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: s
     _add_test_station_trace(fig)
     fig.update_layout(
         title=title,
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         map=dict(style=basemap_style, center=dict(lat=-7.25, lon=109.8), zoom=6.1),
         margin=dict(l=0, r=0, t=40, b=0),

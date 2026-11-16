@@ -1,4 +1,4 @@
-"""Shared UI styling, headers, download buttons, and footer components."""
+"""Shared UI styling, theme toggle, headers, download buttons, and footer components."""
 
 from __future__ import annotations
 
@@ -6,51 +6,210 @@ import pandas as pd
 import plotly.io as pio
 import streamlit as st
 
-from src.config import MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, SEASONS, YEARS
+from src.config import MODEL_ORDER, MODEL_SPECS, SEASONS, YEARS
+from src.theme import get_theme_palette, is_dark_mode, toggle_theme_mode
 
-pio.templates.default = "plotly_dark"
+
+def _light_mode_css(p: dict[str, str]) -> str:
+    """Return CSS overrides to render Streamlit's UI cleanly in Light Mode."""
+    return f"""
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stMain"],
+        [data-testid="stBottom"] {{
+            background-color: {p["bg"]} !important;
+            color: {p["text"]} !important;
+        }}
+        [data-testid="stHeader"],
+        [data-testid="stToolbar"] {{
+            background-color: rgba(248, 250, 252, 0.92) !important;
+            color: {p["text"]} !important;
+        }}
+        [data-testid="stSidebar"],
+        [data-testid="stSidebar"] > div:first-child,
+        [data-testid="stSidebarContent"],
+        [data-testid="stSidebarHeader"] {{
+            background-color: {p["secondary_bg"]} !important;
+            color: {p["text"]} !important;
+            border-color: {p["border"]} !important;
+        }}
+        [data-testid="stSidebar"] {{
+            border-right: 1px solid {p["border"]} !important;
+        }}
+        [data-testid="stSidebarNav"] a,
+        [data-testid="stSidebarNavLink"],
+        [data-testid="stSidebarNavLink"] span,
+        [data-testid="stSidebarNav"] span {{
+            color: {p["text_secondary"]} !important;
+        }}
+        [data-testid="stSidebarNavLink"][aria-current="page"],
+        [data-testid="stSidebarNavLink"]:hover {{
+            background-color: {p["hover_bg"]} !important;
+            color: {p["text"]} !important;
+        }}
+        h1, h2, h3, h4, h5, h6,
+        .stApp p, .stApp li,
+        [data-testid="stMarkdownContainer"],
+        [data-testid="stMarkdownContainer"] p,
+        [data-testid="stWidgetLabel"],
+        [data-testid="stWidgetLabel"] p,
+        [data-testid="stRadio"] label p,
+        [data-testid="stCheckbox"] label p,
+        [data-testid="stSlider"] label p {{
+            color: {p["text"]} !important;
+        }}
+        [data-testid="stCaptionContainer"],
+        [data-testid="stCaptionContainer"] p,
+        .stCaption {{
+            color: {p["text_muted"]} !important;
+        }}
+        [data-testid="stMetricLabel"],
+        [data-testid="stMetricLabel"] p {{
+            color: {p["text_muted"]} !important;
+        }}
+        [data-testid="stMetricValue"],
+        [data-testid="stMetricValue"] > div {{
+            color: {p["text"]} !important;
+        }}
+        [data-testid="stHeader"] svg,
+        [data-testid="stSidebar"] svg,
+        [data-testid="stExpander"] svg,
+        [data-baseweb="select"] svg {{
+            color: {p["tick_text"]} !important;
+            fill: currentColor !important;
+        }}
+        [data-testid="stButton"] button,
+        [data-testid="stDownloadButton"] button {{
+            background-color: {p["card_bg"]} !important;
+            color: {p["text"]} !important;
+            border: 1px solid {p["border_strong"]} !important;
+        }}
+        [data-testid="stButton"] button:hover,
+        [data-testid="stDownloadButton"] button:hover {{
+            background-color: {p["hover_bg"]} !important;
+            border-color: {p["text_muted"]} !important;
+        }}
+        [data-baseweb="tab-list"] {{
+            border-bottom: 1px solid {p["border"]} !important;
+        }}
+        [data-baseweb="tab"] {{
+            color: {p["text_muted"]} !important;
+        }}
+        [data-baseweb="tab"][aria-selected="true"] {{
+            color: {p["text"]} !important;
+        }}
+        [data-baseweb="tab-highlight"] {{
+            background-color: #2563EB !important;
+        }}
+        [data-baseweb="select"] > div,
+        [data-baseweb="input"] > div,
+        [data-baseweb="base-input"] {{
+            background-color: {p["input_bg"]} !important;
+            color: {p["text"]} !important;
+            border-color: {p["border_strong"]} !important;
+        }}
+        [data-baseweb="select"] span,
+        [data-baseweb="select"] input,
+        [data-baseweb="input"] input,
+        [data-baseweb="base-input"] input {{
+            color: {p["text"]} !important;
+            -webkit-text-fill-color: {p["text"]} !important;
+        }}
+        [data-baseweb="tag"] {{
+            background-color: {p["hover_bg"]} !important;
+            color: {p["text"]} !important;
+            border: 1px solid {p["border_strong"]} !important;
+        }}
+        [data-baseweb="popover"],
+        [data-baseweb="popover"] > div,
+        [data-baseweb="menu"],
+        [role="listbox"] {{
+            background-color: {p["card_bg"]} !important;
+            color: {p["text"]} !important;
+            border: 1px solid {p["border_strong"]} !important;
+        }}
+        [role="option"] {{
+            color: {p["text"]} !important;
+            background-color: {p["card_bg"]} !important;
+        }}
+        [role="option"]:hover,
+        [role="option"][aria-selected="true"] {{
+            background-color: {p["hover_bg"]} !important;
+        }}
+        [data-testid="stExpander"] {{
+            background-color: {p["card_bg"]} !important;
+            border: 1px solid {p["border"]} !important;
+            border-radius: 10px !important;
+        }}
+        [data-testid="stExpander"] summary,
+        [data-testid="stExpander"] summary p {{
+            color: {p["text"]} !important;
+        }}
+        [data-testid="stDataFrame"] {{
+            filter: invert(1) hue-rotate(180deg);
+            border: 1px solid {p["border_strong"]};
+            border-radius: 8px;
+            overflow: hidden;
+        }}
+        [data-testid="stJson"] {{
+            filter: invert(0.95) hue-rotate(180deg);
+        }}
+        [data-testid="stAlert"] {{
+            color: {p["text"]} !important;
+        }}
+        hr {{
+            border-color: {p["border"]} !important;
+        }}
+    """
 
 
 def inject_custom_css() -> None:
+    """Inject shared card, badge, footer, and active Dark/Light theme CSS."""
+    p = get_theme_palette()
+    pio.templates.default = p["plotly_template"]
+    light_overrides = "" if is_dark_mode() else _light_mode_css(p)
+
     st.markdown(
-        """
+        f"""
         <style>
-        .block-container {
+        .block-container {{
             padding-top: 1.5rem;
             padding-bottom: 2rem;
-        }
-        div[data-testid="stMetric"] {
-            background-color: #1E1E1E;
-            border: 1px solid #303036;
+        }}
+        div[data-testid="stMetric"] {{
+            background-color: {p["card_bg"]};
+            border: 1px solid {p["border"]};
             border-radius: 10px;
             padding: 12px 16px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-        }
-        div[data-testid="stPlotlyChart"] {
-            background-color: #1E1E1E;
-            border: 1px solid #303036;
+            box-shadow: {p["shadow"]};
+        }}
+        div[data-testid="stPlotlyChart"] {{
+            background-color: {p["card_bg"]};
+            border: 1px solid {p["border"]};
             border-radius: 10px;
             overflow: hidden;
-        }
-        .dk-badge {
+            box-shadow: {p["shadow"]};
+        }}
+        .dk-badge {{
             display: inline-block;
             padding: 3px 10px;
             border-radius: 999px;
             font-size: 0.78rem;
             font-weight: 600;
-            background: #27272A;
-            color: #E4E4E7;
-            border: 1px solid #3F3F46;
+            background: {p["badge_bg"]};
+            color: {p["badge_text"]};
+            border: 1px solid {p["border_strong"]};
             margin-right: 6px;
-        }
-        .dk-footer {
+        }}
+        .dk-footer {{
             text-align: center;
-            color: #A1A1AA;
+            color: {p["text_muted"]};
             font-size: 0.85rem;
             margin-top: 2.5rem;
             padding-top: 1rem;
-            border-top: 1px solid #303036;
-        }
+            border-top: 1px solid {p["border"]};
+        }}
+        {light_overrides}
         </style>
         """,
         unsafe_allow_html=True,
@@ -59,7 +218,18 @@ def inject_custom_css() -> None:
 
 def render_header(title: str, subtitle: str, badges: list[str] | None = None) -> None:
     inject_custom_css()
-    st.title(title)
+    col_title, col_toggle = st.columns([6.5, 1.3], vertical_alignment="center")
+    with col_title:
+        st.title(title)
+    with col_toggle:
+        btn_label = "☀️ Light Mode" if is_dark_mode() else "🌙 Dark Mode"
+        st.button(
+            btn_label,
+            key="dk_theme_toggle_btn",
+            on_click=toggle_theme_mode,
+            help="Switch between Dark Mode and Light Mode",
+            use_container_width=True,
+        )
     st.caption(subtitle)
     if badges:
         html = "".join(f'<span class="dk-badge">{b}</span>' for b in badges)
@@ -108,25 +278,36 @@ def sidebar_season_filter(key: str = "season") -> list[int]:
 
 
 def render_chart(fig) -> None:
-    """Apply consistent dark-grey card styling and render without Streamlit theme overrides."""
+    """Apply consistent theme-aware card styling and render without Streamlit overrides."""
+    p = get_theme_palette()
     fig.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="#1E1E1E",
-        plot_bgcolor="#18181B",
-        font=dict(color="#E4E4E7"),
+        template=p["plotly_template"],
+        paper_bgcolor=p["card_bg"],
+        plot_bgcolor=p["plot_bg"],
+        font=dict(color=p["text_secondary"]),
+        title_font_color=p["text"],
+        legend_font_color=p["text_secondary"],
     )
     fig.update_xaxes(
-        gridcolor="#2E2E32",
-        zerolinecolor="#3F3F46",
-        tickfont=dict(color="#D4D4D8"),
-        title_font=dict(color="#E4E4E7"),
+        gridcolor=p["grid"],
+        zerolinecolor=p["border_strong"],
+        tickfont=dict(color=p["tick_text"]),
+        title_font=dict(color=p["text_secondary"]),
     )
     fig.update_yaxes(
-        gridcolor="#2E2E32",
-        zerolinecolor="#3F3F46",
-        tickfont=dict(color="#D4D4D8"),
-        title_font=dict(color="#E4E4E7"),
+        gridcolor=p["grid"],
+        zerolinecolor=p["border_strong"],
+        tickfont=dict(color=p["tick_text"]),
+        title_font=dict(color=p["text_secondary"]),
     )
+    for annot in fig.layout.annotations or []:
+        if not getattr(annot, "bgcolor", None):
+            annot.font.color = p["text"]
+    for trace in fig.data or []:
+        if trace.type in ("heatmap", "choroplethmap", "choropleth", "contour", "surface"):
+            trace.colorbar.tickfont = dict(color=p["tick_text"])
+            trace.colorbar.title.font = dict(color=p["text_secondary"])
+
     st.plotly_chart(fig, use_container_width=True, theme=None)
 
 
@@ -140,4 +321,3 @@ def download_csv_button(df: pd.DataFrame, filename: str, label: str = "Download 
         file_name=filename,
         mime="text/csv",
     )
-

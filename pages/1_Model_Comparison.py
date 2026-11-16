@@ -12,6 +12,7 @@ from src.charts import make_scatter_comparison, make_timeseries_figure
 from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, TEST_POINTS
 from src.data_loader import load_paired_with_predictions
 from src.metrics import compute_metrics, evaluate_models_table
+from src.theme import get_plotly_template
 from src.ui import (
     download_csv_button,
     render_chart,
@@ -196,7 +197,7 @@ with tab_ts:
             fig_err_ts.add_hline(y=0, line_dash="dash", line_color="#A1A1AA", line_width=1)
         fig_err_ts.update_layout(
             title=f"{ts_mode} — {scope_title}",
-            template="plotly_dark",
+            template=get_plotly_template(),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             hovermode="x unified",
@@ -235,7 +236,7 @@ with tab_res:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Error Spread (Pred − Obs)",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_box.add_hline(y=0, line_dash="dash", line_color="#A1A1AA")
         fig_box.update_layout(
@@ -253,7 +254,7 @@ with tab_res:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="How Often Error Stays Below X mm",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_ecdf.update_layout(
             xaxis_title="Absolute Error |Pred − Obs| (mm)",
@@ -305,7 +306,7 @@ with tab_pts:
             aspect="auto",
             color_continuous_scale="RdYlGn" if metric_choice in ("R2", "KGE") else "YlOrRd",
             title=f"{metric_choice} by Test Station ({y_start}–{y_end})",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_hm.update_layout(height=420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         render_chart(fig_hm)

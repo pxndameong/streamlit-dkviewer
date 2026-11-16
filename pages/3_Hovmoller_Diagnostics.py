@@ -10,6 +10,7 @@ import streamlit as st
 
 from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_SHORT, TEST_POINTS
 from src.data_loader import load_paired_with_predictions, load_predictions
+from src.theme import get_plotly_template
 from src.ui import (
     download_csv_button,
     render_chart,
@@ -182,7 +183,7 @@ if hov_mode == "Year × Test Stations (West → East)":
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
         title=f"{metric_choice} by Year & Test Station (West → East Java)",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=650,
@@ -252,7 +253,7 @@ elif hov_mode == "Month × Year Calendar Grid":
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
         title=f"{metric_choice} by Month & Year ({scope_m2})",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=650,
@@ -311,7 +312,7 @@ else:
     fig.update_yaxes(title_text="Time", row=1, col=1)
     fig.update_layout(
         title=f"West-to-East Rainfall Over Time ({y_start}–{y_end})",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=680,

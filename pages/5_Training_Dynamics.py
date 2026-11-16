@@ -10,6 +10,7 @@ import streamlit as st
 
 from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
 from src.data_loader import load_history_curves, load_history_summary
+from src.theme import get_plotly_template
 from src.ui import (
     download_csv_button,
     render_chart,
@@ -128,7 +129,7 @@ with tab_curve:
     fig.update_yaxes(title_text=metric_pair)
     fig.update_layout(
         title=f"Training Error Curves — {MONTH_NAMES[inspect_month]} {inspect_year}",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hovermode="x unified",
@@ -187,7 +188,7 @@ with tab_global:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Train vs Test Error Gap (Test MAE − Train MAE)",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_gap.update_layout(showlegend=False, height=400, yaxis_title="Error Gap (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         render_chart(fig_gap)
@@ -202,7 +203,7 @@ with tab_global:
             opacity=0.65,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="When Models Reach Best Test Accuracy (Epoch)",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_ep.update_layout(height=400, xaxis_title="Best Epoch", yaxis_title="Number of Monthly Runs", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         render_chart(fig_ep)
@@ -220,7 +221,7 @@ with tab_overfit:
         hover_data=["year", "month", "best_mae_test_epoch", "final_mae_train"],
         color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
         title=f"Best Test MAE vs Final Epoch Test MAE ({y_start}–{y_end})",
-        template="plotly_dark",
+        template=get_plotly_template(),
         opacity=0.65,
     )
     lim = max(df_sum_sub["final_mae_test"].max(), df_sum_sub["best_mae_test"].max()) * 1.05

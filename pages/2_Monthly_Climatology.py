@@ -7,9 +7,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, MONTH_SHORT, OBS_COLOR, TEST_POINTS
+from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, MONTH_SHORT, TEST_POINTS
 from src.data_loader import load_paired_with_predictions
 from src.metrics import evaluate_models_table
+from src.theme import get_plotly_template, get_theme_palette
 from src.ui import (
     download_csv_button,
     render_chart,
@@ -82,7 +83,7 @@ with tab_cycle:
         y=df_cyc["monthly_rainfall"],
         mode="lines+markers",
         name="Observed Rainfall",
-        line=dict(color=OBS_COLOR, width=3),
+        line=dict(color=get_theme_palette()["obs_color"], width=3),
         marker=dict(size=7),
     ))
     for mk in selected_models:
@@ -96,7 +97,7 @@ with tab_cycle:
         ))
     fig_cyc.update_layout(
         title=f"Average Monthly Rainfall ({y_start}–{y_end}) — {station_sel}",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hovermode="x unified",
@@ -133,7 +134,7 @@ with tab_cycle:
             markers=True,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Average Error (MAE) by Month",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_mmae.update_layout(height=380, yaxis_title="MAE (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         render_chart(fig_mmae)
@@ -146,7 +147,7 @@ with tab_cycle:
             barmode="group",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Average Bias (Pred − Obs) by Month",
-            template="plotly_dark",
+            template=get_plotly_template(),
         )
         fig_mbias.add_hline(y=0, line_dash="dash", line_color="#A1A1AA")
         fig_mbias.update_layout(height=380, yaxis_title="Mean Bias (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
@@ -162,7 +163,7 @@ with tab_month:
         y=df_m_yr["monthly_rainfall"],
         mode="lines+markers",
         name="Observed",
-        line=dict(color=OBS_COLOR, width=2.6),
+        line=dict(color=get_theme_palette()["obs_color"], width=2.6),
     ))
     for mk in selected_models:
         spec = MODEL_SPECS[mk]
@@ -175,7 +176,7 @@ with tab_month:
         ))
     fig_my.update_layout(
         title=f"{MONTH_NAMES[focus_month]} Rainfall Across Years ({y_start}–{y_end}) — {station_sel}",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hovermode="x unified",
@@ -228,7 +229,7 @@ with tab_anom:
     fig_anom.add_hline(y=0, line_color="#A1A1AA", line_width=1)
     fig_anom.update_layout(
         title=f"Yearly Rainfall Difference vs Long-Term Average ({clim_obs:.1f} mm/mo) — {station_sel}",
-        template="plotly_dark",
+        template=get_plotly_template(),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hovermode="x unified",

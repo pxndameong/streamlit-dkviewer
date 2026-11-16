@@ -14,6 +14,7 @@ from src.data_loader import (
     load_shap_ranking,
     load_station_catalog,
 )
+from src.theme import get_plotly_template
 from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 st.set_page_config(
@@ -105,7 +106,7 @@ with tab_raw:
                 y="monthly_rainfall",
                 color="stanam",
                 title=f"Raw BMKG Station Rainfall — {tp_sel}",
-                template="plotly_dark",
+                template=get_plotly_template(),
             )
             fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
             render_chart(fig_raw)
@@ -121,7 +122,7 @@ with tab_raw:
                     y="monthly_rainfall",
                     markers=True,
                     title=f"Raw Monthly Rainfall — {st_choice} (Elev: {sub_raw['elev'].iloc[0]:.0f} m)",
-                    template="plotly_dark",
+                    template=get_plotly_template(),
                 )
                 fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                 render_chart(fig_raw)
@@ -174,7 +175,7 @@ with tab_cov:
                 color="location_name",
                 opacity=0.55,
                 title=f"{cov_x} vs {y_target} (9 Test Stations, 1985–2014)",
-                template="plotly_dark",
+                template=get_plotly_template(),
             )
             fig_cov.update_layout(
                 xaxis_title=f"{cov_x} [{EXOGENOUS_INFO[cov_x]['unit']}]",
@@ -221,7 +222,7 @@ with tab_shap:
             color="Tier",
             orientation="h",
             title=f"Top {top_n} Most Important Weather Variables (SHAP)",
-            template="plotly_dark",
+            template=get_plotly_template(),
             color_discrete_map={
                 "1-Var (OLR)": "#64748B",
                 "2-Var": "#2563EB",
