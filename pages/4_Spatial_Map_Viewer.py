@@ -69,7 +69,7 @@ view_mode = st.sidebar.radio(
 
 render_style = st.sidebar.radio(
     "Map Style",
-    ["Smooth Heatmap on Map", "Grid Points on Map"],
+    ["Smooth Heatmap on Map", "Grid Boxes on Map"],
     key="map_render",
 )
 basemap_choice = st.sidebar.radio(
@@ -207,29 +207,69 @@ def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str
     return fig
 
 
-def _plot_osm_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
-    cmin, cmax = None, None
-    if symmetric:
-        vmax = float(df_pts[val_col].abs().max())
-        cmin, cmax = -vmax, vmax
+@st.cache_data(show_spinner=False)
+def _build_grid_geojson(lats: tuple[float, ...], lons: tuple[float, ...]) -> dict:
+    """Build GeoJSON rectangular cell polygons centered at each grid coordinate."""
+    lat_u = np.sort(np.unique(lats))
+    lon_u = np.sort(np.unique(lons))
+    d_lat = float(np.median(np.diff(lat_u))) if len(lat_u) > 1 else 0.25
+    d_lon = float(np.median(np.diff(lon_u))) if len(lon_u) > 1 else 0.25
+    half_lat = d_lat / 2.0
+    half_lon = d_lon / 2.0
+
+    features = []
+    for idx, (lat, lon) in enumerate(zip(lats, lons)):
+        lon0, lon1 = float(lon - half_lon), float(lon + half_lon)
+        lat0, lat1 = float(lat - half_lat), float(lat + half_lat)
+        features.append(
+            {
+                "type": "Feature",
+                "id": str(idx),
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [lon0, lat0],
+                        [lon1, lat0],
+                        [lon1, lat1],
+                        [lon0, lat1],
+                        [lon0, lat0],
+                    ]],
+                },
+            }
+        )
+    return {"type": "FeatureCollection", "features": features}
+
+
+def _plot_grid_box_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
+    df_valid = df_pts.dropna(subset=["lat", "lon", val_col]).reset_index(drop=True)
+    zmin, zmax = None, None
+    if symmetric and not df_valid.empty:
+        vmax = float(df_valid[val_col].abs().max())
+        zmin, zmax = -vmax, vmax
+
+    geojson = _build_grid_geojson(
+        tuple(df_valid["lat"].astype(float)),
+        tuple(df_valid["lon"].astype(float)),
+    )
+    locations = [str(i) for i in range(len(df_valid))]
+    border_color = "rgba(255, 255, 255, 0.25)" if basemap_style == "carto-darkmatter" else "rgba(15, 23, 42, 0.25)"
+
     fig = go.Figure()
-    fig.add_trace(go.Scattermap(
-        lat=df_pts["lat"],
-        lon=df_pts["lon"],
-        mode="markers",
-        marker=dict(
-            size=9,
-            color=df_pts[val_col],
-            colorscale=cscale,
-            cmin=cmin,
-            cmax=cmax,
-            showscale=True,
-            colorbar=dict(title=ztitle),
-            opacity=0.85,
-        ),
-        text=[f"({r['lat']:.2f}, {r['lon']:.2f})<br>{ztitle}: {r[val_col]:.2f}" for _, r in df_pts.iterrows()],
+    fig.add_trace(go.Choroplethmap(
+        geojson=geojson,
+        locations=locations,
+        z=df_valid[val_col],
+        colorscale=cscale,
+        zmin=zmin,
+        zmax=zmax,
+        marker_opacity=0.72,
+        marker_line_width=0.6,
+        marker_line_color=border_color,
+        colorbar=dict(title=ztitle),
+        text=[f"({r['lat']:.2f}, {r['lon']:.2f})<br>{ztitle}: {r[val_col]:.2f}" for _, r in df_valid.iterrows()],
         hoverinfo="text",
         name=ztitle,
+        showlegend=False,
     ))
     _add_test_station_trace(fig)
     fig.update_layout(
@@ -250,7 +290,7 @@ if view_mode == "Single Model Map":
     mk = st.sidebar.selectbox("Select Model", MODEL_ORDER, index=4, format_func=lambda k: MODEL_SPECS[k]["label"])
     pcol = MODEL_SPECS[mk]["pred_col"]
     title = f"{MODEL_SPECS[mk]['label']} — {time_label}"
-    fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
+    fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_grid_box_map(pred_slice, pcol, title, "Rainfall (mm)")
     render_chart(fig)
 
     # Spatial summary KPIs
@@ -286,7 +326,7 @@ elif view_mode == "Compare Models Side-by-Side":
         pcol = MODEL_SPECS[mk]["pred_col"]
         title = f"{MODEL_SPECS[mk]['short']} — {time_label}"
         with cols[i % 2]:
-            fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
+            fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_grid_box_map(pred_slice, pcol, title, "Rainfall (mm)")
             render_chart(fig)
 
 elif view_mode == "Difference Between Models (A − B)":
@@ -302,7 +342,7 @@ elif view_mode == "Difference Between Models (A − B)":
     fig = (
         _plot_smooth_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
         if render_style.startswith("Smooth")
-        else _plot_osm_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
+        else _plot_grid_box_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
     )
     render_chart(fig)
     st.caption(
@@ -332,7 +372,7 @@ else:
     fig = (
         _plot_smooth_map(era_slice, cov_choice, title, unit, cscale="Viridis")
         if render_style.startswith("Smooth")
-        else _plot_osm_map(era_slice, cov_choice, title, unit, cscale="Viridis")
+        else _plot_grid_box_map(era_slice, cov_choice, title, unit, cscale="Viridis")
     )
     render_chart(fig)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ETL Pipeline for DeepKriging Java Rainfall Viewer (DK Viewer v2).
+ETL Pipeline for DeepKriging Java Rainfall Viewer (DK Viewer).
 
 Converts raw training outputs from HASIL VER 5 (1var, 2var, 5var, 9var, 20var),
 raw station rainfall observations, raw ERA5 0.25-deg grid covariates, and SHAP

@@ -1,4 +1,4 @@
-"""Cached Parquet data loaders for DK Viewer v2."""
+"""Cached Parquet data loaders for DK Viewer."""
 
 from __future__ import annotations
 

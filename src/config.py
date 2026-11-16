@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-APP_TITLE = "DK Viewer v2"
+APP_TITLE = "DK Viewer"
 APP_SUBTITLE = "Java Monthly Rainfall Model Viewer (DeepKriging Ver 5, 1985–2014)"
 
 ROOT_DIR = Path(__file__).resolve().parent.parent

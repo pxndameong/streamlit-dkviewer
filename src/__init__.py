@@ -1,2 +1,2 @@
-"""Core modules for DeepKriging Java Rainfall Viewer (DK Viewer v2)."""
+"""Core modules for DeepKriging Java Rainfall Viewer (DK Viewer)."""
 

@@ -1,4 +1,4 @@
-# DK Viewer v2 — Java Monthly Rainfall Viewer (1985–2014)
+# DK Viewer — Java Monthly Rainfall Viewer (1985–2014)
 
 An interactive, multi-page **Streamlit** dashboard for comparing **DeepKriging Ver 5** monthly rainfall models across Java, Indonesia (`1985–2014`, `0.25° × 0.25°` grid, `675` cells).
 
