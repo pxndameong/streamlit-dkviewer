@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 from src.config import MODEL_SPECS, OBS_COLOR
 from src.metrics import compute_metrics
 
-PLOT_TEMPLATE = "plotly_dark"
+PLOT_TEMPLATE = "plotly_white"
 
 
 def make_scatter_comparison(
@@ -69,7 +69,7 @@ def make_scatter_comparison(
                 x=[0, limit],
                 y=[0, limit],
                 mode="lines",
-                line=dict(color="#CBD5E1", dash="dash", width=1.2),
+                line=dict(color="#0F172A", dash="dash", width=1.2),
                 showlegend=False,
             ),
             row=r,
@@ -106,10 +106,10 @@ def make_scatter_comparison(
             text=annot_text,
             showarrow=False,
             align="right",
-            bgcolor="rgba(15, 23, 42, 0.88)",
-            bordercolor="#475569",
+            bgcolor="rgba(255,255,255,0.9)",
+            bordercolor="#CBD5E1",
             borderwidth=1,
-            font=dict(size=10, color="#F8FAFC"),
+            font=dict(size=10, color="#0F172A"),
         )
         fig.update_xaxes(title_text="Observed (mm)", range=[0, limit], row=r, col=c)
         fig.update_yaxes(title_text="Predicted (mm)", range=[0, limit], row=r, col=c)
@@ -117,8 +117,8 @@ def make_scatter_comparison(
     fig.update_layout(
         title=title,
         template=PLOT_TEMPLATE,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(15, 23, 42, 0.35)",
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
         height=390 * rows,
         margin=dict(t=60, b=40, l=40, r=20),
     )
@@ -158,8 +158,8 @@ def make_timeseries_figure(
     fig.update_layout(
         title=title,
         template=PLOT_TEMPLATE,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(15, 23, 42, 0.35)",
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
         hovermode="x unified",
         xaxis_title="Date",
         yaxis_title="Monthly Rainfall (mm)",

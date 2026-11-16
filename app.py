@@ -109,7 +109,7 @@ with tab_leader:
         "Mean_Obs": "{:.2f}",
         "Mean_Pred": "{:.2f}",
     }).highlight_min(subset=["MAE", "RMSE", "NRMSE"], color="#14532D").highlight_max(
-        subset=["R2", "KGE", "r"], color="#1E3A8A"
+        subset=["R2", "KGE", "r"], color="#3F3F46"
     )
     st.dataframe(styled_tbl, use_container_width=True, hide_index=True)
     download_csv_button(tbl, "dk_v2_model_leaderboard.csv", "⬇️ Download Leaderboard CSV")
@@ -136,9 +136,9 @@ with tab_leader:
         fig_err.update_layout(
             title="Prediction Error by Model (Lower is Better)",
             barmode="group",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(15, 23, 42, 0.35)",
+            template="plotly_white",
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
             yaxis_title="mm / month",
             height=380,
         )
@@ -165,9 +165,9 @@ with tab_leader:
         fig_skill.update_layout(
             title="Accuracy Scores by Model (Higher is Better)",
             barmode="group",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(15, 23, 42, 0.35)",
+            template="plotly_white",
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
             yaxis_title="Score",
             yaxis=dict(range=[0, 1.05]),
             height=380,

@@ -88,7 +88,7 @@ MODEL_SPECS = {
     },
 }
 
-OBS_COLOR = "#F8FAFC"
+OBS_COLOR = "#111827"
 
 TEST_POINTS = [
     {"point_id": 1, "lon": 106.50, "lat": -6.25, "location_name": "Tangerang / Bogor (West Java)", "short": "S1 Tangerang/Bogor"},

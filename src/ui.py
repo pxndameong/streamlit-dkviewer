@@ -17,8 +17,8 @@ def inject_custom_css() -> None:
             padding-bottom: 2rem;
         }
         div[data-testid="stMetric"] {
-            background-color: #1E293B;
-            border: 1px solid #334155;
+            background-color: #1E1E1E;
+            border: 1px solid #303036;
             border-radius: 10px;
             padding: 12px 16px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -29,18 +29,18 @@ def inject_custom_css() -> None:
             border-radius: 999px;
             font-size: 0.78rem;
             font-weight: 600;
-            background: #1E3A8A;
-            color: #DBEAFE;
-            border: 1px solid #3B82F6;
+            background: #27272A;
+            color: #E4E4E7;
+            border: 1px solid #3F3F46;
             margin-right: 6px;
         }
         .dk-footer {
             text-align: center;
-            color: #94A3B8;
+            color: #A1A1AA;
             font-size: 0.85rem;
             margin-top: 2.5rem;
             padding-top: 1rem;
-            border-top: 1px solid #334155;
+            border-top: 1px solid #303036;
         }
         </style>
         """,
