@@ -17,7 +17,7 @@ import streamlit as st
 
 from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
 from src.data_loader import load_era5_grid, load_paired_obs, load_predictions
-from src.ui import download_csv_button, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 st.set_page_config(
     page_title=f"{APP_TITLE} | Rainfall Maps",
@@ -251,7 +251,7 @@ if view_mode == "Single Model Map":
     pcol = MODEL_SPECS[mk]["pred_col"]
     title = f"{MODEL_SPECS[mk]['label']} — {time_label}"
     fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
 
     # Spatial summary KPIs
     c1, c2, c3, c4 = st.columns(4)
@@ -287,7 +287,7 @@ elif view_mode == "Compare Models Side-by-Side":
         title = f"{MODEL_SPECS[mk]['short']} — {time_label}"
         with cols[i % 2]:
             fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
-            st.plotly_chart(fig, use_container_width=True)
+            render_chart(fig)
 
 elif view_mode == "Difference Between Models (A − B)":
     c1, c2 = st.sidebar.columns(2)
@@ -304,7 +304,7 @@ elif view_mode == "Difference Between Models (A − B)":
         if render_style.startswith("Smooth")
         else _plot_osm_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
     st.caption(
         f"Average difference across map: **{diff_df['diff'].mean():+.2f} mm** | "
         f"Range: **[{diff_df['diff'].min():+.2f}, {diff_df['diff'].max():+.2f}] mm**"
@@ -334,7 +334,7 @@ else:
         if render_style.startswith("Smooth")
         else _plot_osm_map(era_slice, cov_choice, title, unit, cscale="Viridis")
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
 
 render_footer()
 

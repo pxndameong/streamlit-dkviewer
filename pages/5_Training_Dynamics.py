@@ -12,6 +12,7 @@ from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES,
 from src.data_loader import load_history_curves, load_history_summary
 from src.ui import (
     download_csv_button,
+    render_chart,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -133,7 +134,7 @@ with tab_curve:
         hovermode="x unified",
         height=460,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
 
     st.subheader(f"Summary — {MONTH_NAMES[inspect_month]} {inspect_year}")
     st.dataframe(
@@ -189,7 +190,7 @@ with tab_global:
             template="plotly_dark",
         )
         fig_gap.update_layout(showlegend=False, height=400, yaxis_title="Error Gap (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_gap, use_container_width=True)
+        render_chart(fig_gap)
 
     with c_g2:
         fig_ep = px.histogram(
@@ -204,7 +205,7 @@ with tab_global:
             template="plotly_dark",
         )
         fig_ep.update_layout(height=400, xaxis_title="Best Epoch", yaxis_title="Number of Monthly Runs", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_ep, use_container_width=True)
+        render_chart(fig_ep)
 
 with tab_overfit:
     st.caption(
@@ -231,7 +232,7 @@ with tab_overfit:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig_es, use_container_width=True)
+    render_chart(fig_es)
     download_csv_button(df_sum_sub, "training_convergence_summary.csv")
 
 render_footer()

@@ -14,6 +14,7 @@ from src.data_loader import load_paired_with_predictions
 from src.metrics import compute_metrics, evaluate_models_table
 from src.ui import (
     download_csv_button,
+    render_chart,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -176,7 +177,7 @@ with tab_ts:
             show_obs=True,
             title=f"Monthly Rainfall — {scope_title}",
         )
-        st.plotly_chart(fig_ts, use_container_width=True)
+        render_chart(fig_ts)
     else:
         fig_err_ts = go.Figure()
         for mk in selected_models:
@@ -203,7 +204,7 @@ with tab_ts:
             yaxis_title="Error (mm)",
             height=440,
         )
-        st.plotly_chart(fig_err_ts, use_container_width=True)
+        render_chart(fig_err_ts)
 
 with tab_scatter:
     fig_sc = make_scatter_comparison(
@@ -211,7 +212,7 @@ with tab_scatter:
         selected_models,
         title=f"Observed vs Predicted Monthly Rainfall — {scope_title}",
     )
-    st.plotly_chart(fig_sc, use_container_width=True)
+    render_chart(fig_sc)
 
 with tab_res:
     res_rows = []
@@ -243,7 +244,7 @@ with tab_res:
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
         )
-        st.plotly_chart(fig_box, use_container_width=True)
+        render_chart(fig_box)
 
     with c_r2:
         fig_ecdf = px.ecdf(
@@ -261,7 +262,7 @@ with tab_res:
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
         )
-        st.plotly_chart(fig_ecdf, use_container_width=True)
+        render_chart(fig_ecdf)
 
 with tab_pts:
     st.caption("Compare model accuracy across all 9 test stations for the selected years and season.")
@@ -307,7 +308,7 @@ with tab_pts:
             template="plotly_dark",
         )
         fig_hm.update_layout(height=420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_hm, use_container_width=True)
+        render_chart(fig_hm)
         download_csv_button(df_pt, "per_station_metrics.csv", "⬇️ Download Per-Station Metrics CSV")
 
 with tab_tbl:

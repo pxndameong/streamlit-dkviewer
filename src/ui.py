@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import pandas as pd
+import plotly.io as pio
 import streamlit as st
 
 from src.config import MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, SEASONS, YEARS
+
+pio.templates.default = "plotly_dark"
 
 
 def inject_custom_css() -> None:
@@ -24,10 +27,10 @@ def inject_custom_css() -> None:
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         }
         div[data-testid="stPlotlyChart"] {
-            background-color: #1A1A1D;
-            border: 1px solid #2E2E32;
+            background-color: #1E1E1E;
+            border: 1px solid #303036;
             border-radius: 10px;
-            padding: 6px 8px;
+            overflow: hidden;
         }
         .dk-badge {
             display: inline-block;
@@ -102,6 +105,29 @@ def sidebar_year_range(key_prefix: str = "yr") -> tuple[int, int]:
 def sidebar_season_filter(key: str = "season") -> list[int]:
     season_name = st.sidebar.selectbox("Season Filter", list(SEASONS.keys()), index=0, key=key)
     return SEASONS[season_name]
+
+
+def render_chart(fig) -> None:
+    """Apply consistent dark-grey card styling and render without Streamlit theme overrides."""
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="#1E1E1E",
+        plot_bgcolor="#18181B",
+        font=dict(color="#E4E4E7"),
+    )
+    fig.update_xaxes(
+        gridcolor="#2E2E32",
+        zerolinecolor="#3F3F46",
+        tickfont=dict(color="#D4D4D8"),
+        title_font=dict(color="#E4E4E7"),
+    )
+    fig.update_yaxes(
+        gridcolor="#2E2E32",
+        zerolinecolor="#3F3F46",
+        tickfont=dict(color="#D4D4D8"),
+        title_font=dict(color="#E4E4E7"),
+    )
+    st.plotly_chart(fig, use_container_width=True, theme=None)
 
 
 def download_csv_button(df: pd.DataFrame, filename: str, label: str = "Download CSV") -> None:

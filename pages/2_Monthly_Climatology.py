@@ -12,6 +12,7 @@ from src.data_loader import load_paired_with_predictions
 from src.metrics import evaluate_models_table
 from src.ui import (
     download_csv_button,
+    render_chart,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -103,7 +104,7 @@ with tab_cycle:
         yaxis_title="Average Rainfall (mm/month)",
         height=450,
     )
-    st.plotly_chart(fig_cyc, use_container_width=True)
+    render_chart(fig_cyc)
 
     # Monthly MAE & Bias comparison across 12 months
     monthly_metrics = []
@@ -135,7 +136,7 @@ with tab_cycle:
             template="plotly_dark",
         )
         fig_mmae.update_layout(height=380, yaxis_title="MAE (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_mmae, use_container_width=True)
+        render_chart(fig_mmae)
     with c2:
         fig_mbias = px.bar(
             df_mm,
@@ -149,7 +150,7 @@ with tab_cycle:
         )
         fig_mbias.add_hline(y=0, line_dash="dash", line_color="#A1A1AA")
         fig_mbias.update_layout(height=380, yaxis_title="Mean Bias (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_mbias, use_container_width=True)
+        render_chart(fig_mbias)
 
 with tab_month:
     df_m = df_sub[df_sub["month"] == focus_month].copy()
@@ -182,7 +183,7 @@ with tab_month:
         yaxis_title="Rainfall (mm)",
         height=430,
     )
-    st.plotly_chart(fig_my, use_container_width=True)
+    render_chart(fig_my)
 
     tbl_m = evaluate_models_table(df_m, MODEL_SPECS, selected_models)
     st.subheader(f"Accuracy for {MONTH_NAMES[focus_month]} ({y_start}–{y_end})")
@@ -235,7 +236,7 @@ with tab_anom:
         yaxis_title="Difference from Average (mm/month)",
         height=440,
     )
-    st.plotly_chart(fig_anom, use_container_width=True)
+    render_chart(fig_anom)
 
 render_footer()
 

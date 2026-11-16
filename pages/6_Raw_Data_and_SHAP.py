@@ -14,7 +14,7 @@ from src.data_loader import (
     load_shap_ranking,
     load_station_catalog,
 )
-from src.ui import download_csv_button, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 st.set_page_config(
     page_title=f"{APP_TITLE} | Stations & Variables",
@@ -108,7 +108,7 @@ with tab_raw:
                 template="plotly_dark",
             )
             fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig_raw, use_container_width=True)
+            render_chart(fig_raw)
         else:
             st_opts = sorted(cat_filt["stanam"].unique())
             if st_opts:
@@ -124,7 +124,7 @@ with tab_raw:
                     template="plotly_dark",
                 )
                 fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-                st.plotly_chart(fig_raw, use_container_width=True)
+                render_chart(fig_raw)
 
 # ---------------------------------------------------------------------------
 # Tab 2: Weather Variables Explorer
@@ -182,7 +182,7 @@ with tab_cov:
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
             )
-            st.plotly_chart(fig_cov, use_container_width=True)
+            render_chart(fig_cov)
         with col_r:
             st.markdown("#### Variable Correlation Summary (Test Stations)")
             st.dataframe(
@@ -237,7 +237,7 @@ with tab_shap:
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
         )
-        st.plotly_chart(fig_shap, use_container_width=True)
+        render_chart(fig_shap)
         download_csv_button(shap_df, "global_shap_ranking_all51.csv")
 
 render_footer()

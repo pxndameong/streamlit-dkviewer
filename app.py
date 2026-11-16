@@ -22,7 +22,7 @@ from src.data_loader import (
     load_station_catalog,
 )
 from src.metrics import evaluate_models_table
-from src.ui import download_csv_button, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_footer, render_header
 
 st.set_page_config(
     page_title=f"{APP_TITLE} | Overview",
@@ -142,7 +142,7 @@ with tab_leader:
             yaxis_title="mm / month",
             height=380,
         )
-        st.plotly_chart(fig_err, use_container_width=True)
+        render_chart(fig_err)
 
     with col_b:
         fig_skill = go.Figure()
@@ -172,7 +172,7 @@ with tab_leader:
             yaxis=dict(range=[0, 1.05]),
             height=380,
         )
-        st.plotly_chart(fig_skill, use_container_width=True)
+        render_chart(fig_skill)
 
 with tab_map:
     st.subheader("Java Station Map")
@@ -241,7 +241,7 @@ with tab_map:
         height=520,
         legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="left", x=0),
     )
-    st.plotly_chart(fig_net, use_container_width=True)
+    render_chart(fig_net)
 
     st.markdown("#### 9 Test Stations")
     st.dataframe(pd.DataFrame(TEST_POINTS), use_container_width=True, hide_index=True)

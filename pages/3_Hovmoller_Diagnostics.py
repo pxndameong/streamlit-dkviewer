@@ -12,6 +12,7 @@ from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_SHORT,
 from src.data_loader import load_paired_with_predictions, load_predictions
 from src.ui import (
     download_csv_button,
+    render_chart,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -186,7 +187,7 @@ if hov_mode == "Year × Test Stations (West → East)":
         plot_bgcolor="rgba(0,0,0,0)",
         height=650,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
     download_csv_button(pd.DataFrame(export_rows), "heatmap_year_station.csv")
 
 # ---------------------------------------------------------------------------
@@ -256,7 +257,7 @@ elif hov_mode == "Month × Year Calendar Grid":
         plot_bgcolor="rgba(0,0,0,0)",
         height=650,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
 
 # ---------------------------------------------------------------------------
 # Mode 3: West-to-East Rainfall Over Time across Full 0.25 deg Grid
@@ -315,7 +316,7 @@ else:
         plot_bgcolor="rgba(0,0,0,0)",
         height=680,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    render_chart(fig)
 
 render_footer()
 
