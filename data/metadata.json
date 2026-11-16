@@ -1,0 +1,103 @@
+{
+  "generated_at_utc": "2026-11-16T07:04:28.468393+00:00",
+  "years": [
+    1985,
+    2014
+  ],
+  "models": [
+    "1var",
+    "2var",
+    "5var",
+    "9var",
+    "20var"
+  ],
+  "test_points": [
+    {
+      "point_id": 1,
+      "lon": 106.5,
+      "lat": -6.25,
+      "location_name": "Tangerang / Bogor (West Java)"
+    },
+    {
+      "point_id": 2,
+      "lon": 107.0,
+      "lat": -6.75,
+      "location_name": "Cianjur / Bandung (West Java)"
+    },
+    {
+      "point_id": 3,
+      "lon": 107.5,
+      "lat": -7.25,
+      "location_name": "Garut / Tasikmalaya (West Java)"
+    },
+    {
+      "point_id": 4,
+      "lon": 110.0,
+      "lat": -7.0,
+      "location_name": "Semarang (Central Java)"
+    },
+    {
+      "point_id": 5,
+      "lon": 110.0,
+      "lat": -7.5,
+      "location_name": "Sleman / Yogyakarta (DIY)"
+    },
+    {
+      "point_id": 6,
+      "lon": 111.75,
+      "lat": -7.75,
+      "location_name": "Madiun / Ponorogo (East Java)"
+    },
+    {
+      "point_id": 7,
+      "lon": 112.25,
+      "lat": -7.0,
+      "location_name": "Gresik / Surabaya (East Java)"
+    },
+    {
+      "point_id": 8,
+      "lon": 112.25,
+      "lat": -8.25,
+      "location_name": "South Malang (East Java)"
+    },
+    {
+      "point_id": 9,
+      "lon": 113.5,
+      "lat": -8.0,
+      "location_name": "Jember / Lumajang (East Java)"
+    }
+  ],
+  "datasets": {
+    "predictions": {
+      "rows": 243000,
+      "size_mb": 5.659
+    },
+    "paired_obs": {
+      "rows": 39960,
+      "test_rows": 3240,
+      "train_rows": 36720,
+      "size_mb": 3.611
+    },
+    "raw_stations": {
+      "raw_rows": 174960,
+      "unique_stations": 486,
+      "raw_size_mb": 0.846,
+      "catalog_size_mb": 0.027
+    },
+    "era5_grid_20var": {
+      "rows": 243000,
+      "size_mb": 19.174
+    },
+    "history": {
+      "summary_rows": 1800,
+      "curve_rows": 273537,
+      "summary_size_mb": 0.158,
+      "curves_size_mb": 6.186
+    },
+    "shap_ranking": {
+      "rows": 51,
+      "size_mb": 0.006
+    }
+  },
+  "total_parquet_size_mb": 35.67
+}
