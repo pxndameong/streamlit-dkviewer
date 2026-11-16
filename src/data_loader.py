@@ -70,7 +70,7 @@ def load_station_catalog() -> pd.DataFrame:
     return _read_parquet("station_catalog.parquet")
 
 
-@st.cache_data(show_spinner="Loading ERA5 spatial covariates...")
+@st.cache_data(show_spinner="Loading ERA5 weather variables...")
 def load_era5_grid() -> pd.DataFrame:
     df = _read_parquet("era5_grid_20var.parquet")
     if not df.empty:

@@ -1,48 +1,48 @@
-# DK Viewer v2 — DeepKriging Spatio-Temporal Rainfall Analytics (Java, 1985–2014)
+# DK Viewer v2 — Java Monthly Rainfall Viewer (1985–2014)
 
-An interactive, multi-page **Streamlit** analytics dashboard for evaluating **DeepKriging Ver 5** monthly rainfall models across Java, Indonesia (`1985–2014`, `0.25° × 0.25°` grid, `675` cells).
+An interactive, multi-page **Streamlit** dashboard for comparing **DeepKriging Ver 5** monthly rainfall models across Java, Indonesia (`1985–2014`, `0.25° × 0.25°` grid, `675` cells).
 
-Built as a clean, self-contained, GitHub-ready upgrade over `10k_dkviewer`, featuring an English scientific UI, zstd-compressed Parquet datasets, and full integration of model predictions, independent hold-out test points, raw BMKG station observations, ERA5 atmospheric covariates, training convergence histories, and SHAP rankings.
+Built as a clean, GitHub-ready upgrade over `10k_dkviewer`, featuring simple labels, compressed Parquet datasets, and combined views for model predictions, 9 test stations, raw BMKG station records, ERA5 weather variables, training curves, and SHAP variable rankings.
 
 ---
 
 ## Key Features
 
-1. **Overview & Experiment Hub (`app.py`)**
-   - Global hold-out vs training leaderboard (`MAE`, `RMSE`, `R²`, `KGE`, `r`, `MBE`, `PBIAS%`, `NRMSE`, `CV-RMSE%`).
-   - Interactive Java network map overlaying the **486 raw BMKG stations**, **~102 paired training grid cells**, and **9 independent hold-out test points** (`points_to_remove`).
-   - Model architecture & convergence summary across 1,800 monthly training runs.
+1. **Overview (`app.py`)**
+   - Model accuracy ranking (`MAE`, `RMSE`, `R²`, `KGE`, `r`, `MBE`, `PBIAS%`, `NRMSE`, `CV-RMSE%`).
+   - Interactive Java map showing the **486 BMKG stations**, **training stations**, and **9 test stations**.
+   - Summary of model settings and training results across 1,800 monthly runs.
 
-2. **Model Comparison & Station Explorer (`pages/1_Model_Comparison.py`)**
-   - Evaluate across **All 9 Hold-Out Points**, **Single Test Point**, **All Training Grids**, **Single Training Grid**, or **Java Sub-Regions** (West, Central/DIY, East).
-   - Season filtering (`DJF`, `MAM`, `JJA`, `SON`), interactive time series, residual & error traces, multi-model 1:1 scatter plots with regression lines, error boxplots, empirical CDFs, and per-station metric heatmaps.
+2. **Model Comparison (`pages/1_Model_Comparison.py`)**
+   - Compare models across **All 9 Test Stations**, **Single Test Station**, **All Training Stations**, **Single Training Station**, or **Java Regions** (West, Central/DIY, East).
+   - Season filter (`DJF`, `MAM`, `JJA`, `SON`), time series charts, error charts, scatter plots, error spread, and per-station heatmaps.
 
-3. **Monthly & Seasonal Climatology (`pages/2_Monthly_Climatology.py`)**
-   - 12-month annual rainfall cycle, seasonal MAE/Bias profiles, single-month 30-year interannual trends, and wet/dry anomaly analysis (e.g., El Niño / La Niña years).
+3. **Monthly & Seasonal Patterns (`pages/2_Monthly_Climatology.py`)**
+   - 12-month rainfall cycle, monthly MAE/Bias charts, single-month trends over 30 years, and wet/dry year comparisons (e.g., El Niño / La Niña years).
 
-4. **Spatio-Temporal Hovmöller Diagnostics (`pages/3_Hovmoller_Diagnostics.py`)**
-   - **Year × Station** (ordered West → East Java) and **Month × Year** matrices for `MAE`, `RMSE`, `Bias`, `Predicted`, and `Observed` rainfall.
-   - **Longitude × Time** rainfall propagation across the full `0.25°` Java grid.
+4. **Time & Station Heatmaps (`pages/3_Hovmoller_Diagnostics.py`)**
+   - **Year × Test Station** (West → East Java) and **Month × Year** heatmaps for `MAE`, `RMSE`, `Bias`, `Predicted`, and `Observed` rainfall.
+   - **West-to-East Rainfall Over Time** across the full `0.25°` Java grid.
 
-5. **Spatial Map & Difference Viewer (`pages/4_Spatial_Map_Viewer.py`)**
-   - Cubic-interpolated spatial contours and OpenStreetMap scatter views for single months, monthly climatologies, or 30-year means.
-   - **Side-by-Side Model Comparison**, **Spatial Difference Maps (`Model A − Model B`)**, and **ERA5 Exogenous Field Inspector**.
+5. **Rainfall Maps (`pages/4_Spatial_Map_Viewer.py`)**
+   - Smooth contour maps and OpenStreetMap point views for single months, monthly averages, or 30-year averages.
+   - **Side-by-Side Comparison**, **Difference Maps (`Model A − Model B`)**, and **ERA5 Weather Variable Maps**.
 
-6. **Training Convergence & Epoch Diagnostics (`pages/5_Training_Dynamics.py`)**
-   - Inspect Train vs Test `MAE` and `MSE Loss` learning curves up to `10,000` epochs.
-   - Compare optimal early-stopping epochs vs final epoch performance and analyze generalization gaps across all 1,800 runs.
+6. **Training Progress (`pages/5_Training_Dynamics.py`)**
+   - Inspect training vs test `MAE` and `MSE Loss` curves up to `10,000` epochs.
+   - Compare the best epoch during training against the final epoch (`10,000`).
 
-7. **Raw BMKG Stations, Exogenous Covariates & SHAP (`pages/6_Raw_Data_and_SHAP.py`)**
-   - Inspect the exact `KDTree` spatial pairing between the 486 raw BMKG stations (`stanam`, `elev`) and ERA5 `0.25°` grid cells.
-   - Drill down into raw station time series prior to grid aggregation, inspect covariate correlations, and view the global **51-variable SHAP importance ranking**.
+7. **BMKG Stations, Weather Variables & SHAP (`pages/6_Raw_Data_and_SHAP.py`)**
+   - View the 486 raw BMKG stations (`stanam`, `elev`) and how each matches the nearest ERA5 `0.25°` grid cell.
+   - Inspect raw station rainfall over time, correlations with ERA5 weather variables, and the **51-variable SHAP importance ranking**.
 
 ---
 
 ## Models Included (DeepKriging Ver 5)
 
-All 5 variants use Wendland $C^2$ radial basis functions (`NUM_BASIS = [16, 64, 256]`) combined with top-$k$ SHAP-selected ERA5 atmospheric covariates:
+All 5 variants combine spatial basis functions (`[16, 64, 256]`) with the top-$k$ ERA5 weather variables selected by SHAP:
 
-| Variant | Exogenous Features |
+| Variant | Weather Variables |
 | :--- | :--- |
 | **1-Var (`1var_olr`)** | `olr` |
 | **2-Var (`2var_newest`)** | `olr`, `q_200` |

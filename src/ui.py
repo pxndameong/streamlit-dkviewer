@@ -62,8 +62,8 @@ def render_footer() -> None:
     st.markdown(
         """
         <div class="dk-footer">
-            <strong>BRIN Research Team</strong> &middot; DeepKriging Ver 5 Spatio-Temporal Rainfall Analytics
-            (1985–2014, Java 0.25&deg; Grid)
+            <strong>BRIN Research Team</strong> &middot; DeepKriging Ver 5 Java Monthly Rainfall Viewer
+            (1985–2014)
         </div>
         """,
         unsafe_allow_html=True,
@@ -74,7 +74,7 @@ def sidebar_model_selector(default: list[str] | None = None, key: str = "models"
     if default is None:
         default = MODEL_ORDER
     return st.sidebar.multiselect(
-        "DeepKriging Models",
+        "Models",
         options=MODEL_ORDER,
         default=default,
         format_func=lambda k: MODEL_SPECS[k]["label"],

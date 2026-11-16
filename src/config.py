@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 APP_TITLE = "DK Viewer v2"
-APP_SUBTITLE = "DeepKriging Spatio-Temporal Rainfall Analytics & Diagnostics (Java, 1985–2014)"
+APP_SUBTITLE = "Java Monthly Rainfall Model Viewer (DeepKriging Ver 5, 1985–2014)"
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
@@ -47,34 +47,34 @@ MODEL_SPECS = {
         "pred_col": "pred_1var",
         "color": "#64748B",
         "features": ["olr"],
-        "description": "Single top-SHAP covariate (Outgoing Longwave Radiation) + Wendland C2 RBF spatial basis [16, 64, 256].",
+        "description": "Uses 1 weather variable (OLR) + spatial basis.",
     },
     "2var": {
-        "label": "2-Var (SHAP Top-2)",
+        "label": "2-Var (Top 2)",
         "short": "2-Var",
         "pred_col": "pred_2var",
         "color": "#2563EB",
         "features": ["olr", "q_200"],
-        "description": "Top 2 SHAP covariates (olr, q_200) + Wendland C2 RBF spatial basis [16, 64, 256].",
+        "description": "Uses top 2 weather variables (olr, q_200) + spatial basis.",
     },
     "5var": {
-        "label": "5-Var (SHAP Top-5)",
+        "label": "5-Var (Top 5)",
         "short": "5-Var",
         "pred_col": "pred_5var",
         "color": "#F59E0B",
         "features": ["olr", "q_200", "mcc", "v_1000", "t_200"],
-        "description": "Top 5 SHAP covariates + Wendland C2 RBF spatial basis [16, 64, 256].",
+        "description": "Uses top 5 weather variables + spatial basis.",
     },
     "9var": {
-        "label": "9-Var (SHAP Top-9)",
+        "label": "9-Var (Top 9)",
         "short": "9-Var",
         "pred_col": "pred_9var",
         "color": "#10B981",
         "features": ["olr", "q_200", "mcc", "v_1000", "t_200", "tcrw", "q_925", "r_925", "u_1000"],
-        "description": "Top 9 SHAP covariates + Wendland C2 RBF spatial basis [16, 64, 256].",
+        "description": "Uses top 9 weather variables + spatial basis.",
     },
     "20var": {
-        "label": "20-Var (SHAP Top-20)",
+        "label": "20-Var (Top 20)",
         "short": "20-Var",
         "pred_col": "pred_20var",
         "color": "#DC2626",
@@ -84,22 +84,22 @@ MODEL_SPECS = {
             "u_600", "w_925", "slhf", "t2m", "u_200",
             "msl", "v_850", "w_850", "v_200", "hcc",
         ],
-        "description": "Top 20 SHAP covariates + Wendland C2 RBF spatial basis [16, 64, 256].",
+        "description": "Uses top 20 weather variables + spatial basis.",
     },
 }
 
 OBS_COLOR = "#111827"
 
 TEST_POINTS = [
-    {"point_id": 1, "lon": 106.50, "lat": -6.25, "location_name": "Tangerang / Bogor (West Java)", "short": "P1 Tangerang/Bogor"},
-    {"point_id": 2, "lon": 107.00, "lat": -6.75, "location_name": "Cianjur / Bandung (West Java)", "short": "P2 Cianjur/Bandung"},
-    {"point_id": 3, "lon": 107.50, "lat": -7.25, "location_name": "Garut / Tasikmalaya (West Java)", "short": "P3 Garut/Tasik"},
-    {"point_id": 4, "lon": 110.00, "lat": -7.00, "location_name": "Semarang (Central Java)", "short": "P4 Semarang"},
-    {"point_id": 5, "lon": 110.00, "lat": -7.50, "location_name": "Sleman / Yogyakarta (DIY)", "short": "P5 Sleman/DIY"},
-    {"point_id": 6, "lon": 111.75, "lat": -7.75, "location_name": "Madiun / Ponorogo (East Java)", "short": "P6 Madiun/Ponorogo"},
-    {"point_id": 7, "lon": 112.25, "lat": -7.00, "location_name": "Gresik / Surabaya (East Java)", "short": "P7 Gresik/Surabaya"},
-    {"point_id": 8, "lon": 112.25, "lat": -8.25, "location_name": "South Malang (East Java)", "short": "P8 South Malang"},
-    {"point_id": 9, "lon": 113.50, "lat": -8.00, "location_name": "Jember / Lumajang (East Java)", "short": "P9 Jember/Lumajang"},
+    {"point_id": 1, "lon": 106.50, "lat": -6.25, "location_name": "Tangerang / Bogor (West Java)", "short": "S1 Tangerang/Bogor"},
+    {"point_id": 2, "lon": 107.00, "lat": -6.75, "location_name": "Cianjur / Bandung (West Java)", "short": "S2 Cianjur/Bandung"},
+    {"point_id": 3, "lon": 107.50, "lat": -7.25, "location_name": "Garut / Tasikmalaya (West Java)", "short": "S3 Garut/Tasik"},
+    {"point_id": 4, "lon": 110.00, "lat": -7.00, "location_name": "Semarang (Central Java)", "short": "S4 Semarang"},
+    {"point_id": 5, "lon": 110.00, "lat": -7.50, "location_name": "Sleman / Yogyakarta (DIY)", "short": "S5 Sleman/DIY"},
+    {"point_id": 6, "lon": 111.75, "lat": -7.75, "location_name": "Madiun / Ponorogo (East Java)", "short": "S6 Madiun/Ponorogo"},
+    {"point_id": 7, "lon": 112.25, "lat": -7.00, "location_name": "Gresik / Surabaya (East Java)", "short": "S7 Gresik/Surabaya"},
+    {"point_id": 8, "lon": 112.25, "lat": -8.25, "location_name": "South Malang (East Java)", "short": "S8 South Malang"},
+    {"point_id": 9, "lon": 113.50, "lat": -8.00, "location_name": "Jember / Lumajang (East Java)", "short": "S9 Jember/Lumajang"},
 ]
 
 EXOGENOUS_INFO = {

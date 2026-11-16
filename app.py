@@ -31,13 +31,12 @@ st.set_page_config(
 )
 
 render_header(
-    f"🌧️ {APP_TITLE} — DeepKriging Rainfall Analytics Hub",
+    f"🌧️ {APP_TITLE} — Java Rainfall Model Overview",
     APP_SUBTITLE,
     badges=[
-        "Ver 5 Basis [16, 64, 256]",
-        "5 SHAP Feature Variants (1–20 Var)",
+        "5 Model Variants (1–20 Variables)",
         "1985–2014 (360 Months)",
-        "9 Hold-Out Validation Points",
+        "9 Test Stations",
     ],
 )
 
@@ -61,32 +60,32 @@ best_mae_row = leaderboard_test.loc[leaderboard_test["MAE"].idxmin()]
 best_kge_row = leaderboard_test.loc[leaderboard_test["KGE"].idxmax()]
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Prediction Grid", "675 cells", "0.25° × 0.25° Java")
-c2.metric("Validation Samples", f"{len(df_test):,}", "9 Hold-out Points × 360 mo")
-c3.metric("Raw BMKG Stations", f"{catalog['stanam'].nunique():,}" if not catalog.empty else "—", "KDTree Paired to ERA5")
-c4.metric("Best Test MAE", f"{best_mae_row['MAE']:.2f} mm", best_mae_row["Model"])
-c5.metric("Best Test KGE", f"{best_kge_row['KGE']:.3f}", best_kge_row["Model"])
+c1.metric("Java Map Grid", "675 cells", "0.25° × 0.25° resolution")
+c2.metric("Test Data", f"{len(df_test):,}", "9 Test Stations × 360 months")
+c3.metric("BMKG Stations", f"{catalog['stanam'].nunique():,}" if not catalog.empty else "—", "Matched to nearest grid")
+c4.metric("Best Test Error (MAE)", f"{best_mae_row['MAE']:.2f} mm", best_mae_row["Model"])
+c5.metric("Best Test Score (KGE)", f"{best_kge_row['KGE']:.3f}", best_kge_row["Model"])
 
 st.markdown("---")
 
 # ---------------------------------------------------------------------------
-# Model Architecture & Hold-Out Leaderboard
+# Model Ranking & Station Map
 # ---------------------------------------------------------------------------
 tab_leader, tab_map, tab_arch = st.tabs([
-    "🏆 Hold-Out vs Training Leaderboard",
-    "🗺️ Observation & Validation Network Map",
-    "⚙️ Experiment & Model Specifications",
+    "🏆 Model Ranking",
+    "🗺️ Station Map",
+    "⚙️ Model Details",
 ])
 
 with tab_leader:
     scope_col1, scope_col2 = st.columns([1, 2])
     with scope_col1:
         eval_scope = st.radio(
-            "Evaluation Subset",
-            ["Independent Hold-Out (9 Test Points)", "Training Grid Points", "All Paired Grid Points"],
+            "Data to Evaluate",
+            ["Test Stations (9 Stations)", "Training Stations", "All Stations"],
             horizontal=False,
         )
-    if eval_scope.startswith("Independent"):
+    if eval_scope.startswith("Test"):
         sub_df = df_test
     elif eval_scope.startswith("Training"):
         sub_df = df_train
@@ -95,7 +94,7 @@ with tab_leader:
 
     tbl = evaluate_models_table(sub_df, MODEL_SPECS, MODEL_ORDER)
 
-    st.subheader(f"Performance Summary — {eval_scope}")
+    st.subheader(f"Accuracy Summary — {eval_scope}")
     styled_tbl = tbl.drop(columns=["Model_Key"]).style.format({
         "N": "{:,}",
         "MAE": "{:.2f}",
@@ -135,7 +134,7 @@ with tab_leader:
             textposition="outside",
         ))
         fig_err.update_layout(
-            title="Error Magnitude Across Models (Lower is Better)",
+            title="Prediction Error by Model (Lower is Better)",
             barmode="group",
             template="plotly_white",
             yaxis_title="mm / month",
@@ -162,7 +161,7 @@ with tab_leader:
             textposition="outside",
         ))
         fig_skill.update_layout(
-            title="Skill Scores Across Models (Higher is Better)",
+            title="Accuracy Scores by Model (Higher is Better)",
             barmode="group",
             template="plotly_white",
             yaxis_title="Score",
@@ -172,13 +171,13 @@ with tab_leader:
         st.plotly_chart(fig_skill, use_container_width=True)
 
 with tab_map:
-    st.subheader("Java Station & Paired Grid Network")
+    st.subheader("Java Station Map")
     st.caption(
-        "Comparison between raw BMKG rainfall stations (small dots), ERA5 paired training grid cells (blue), "
-        "and the 9 independent hold-out validation grid cells excluded from training (red diamonds)."
+        "Map of BMKG stations (gray dots), training stations (blue), "
+        "and the 9 test stations excluded from training (red)."
     )
 
-    show_raw = st.checkbox("Overlay Raw BMKG Stations (486 unique station names)", value=True)
+    show_raw = st.checkbox("Show Raw BMKG Stations (486 stations)", value=True)
     grid_summary = (
         df_eval.groupby(["idx_new", "lat", "lon", "is_test_point", "point_id", "location_name", "region"], as_index=False)
         .agg(mean_rain=("monthly_rainfall", "mean"), n_months=("monthly_rainfall", "count"))
@@ -191,9 +190,9 @@ with tab_map:
             lon=catalog["long"],
             mode="markers",
             marker=dict(size=5, color="#64748B", opacity=0.55),
-            name="Raw BMKG Stations",
+            name="BMKG Stations",
             text=[
-                f"{r['stanam']} (Elev: {r['elev']:.0f} m)<br>Paired Grid: ({r['grid_lat']:.2f}, {r['grid_lon']:.2f}) | Dist: {r['pair_dist_km']:.1f} km"
+                f"{r['stanam']} (Elev: {r['elev']:.0f} m)<br>Nearest Grid: ({r['grid_lat']:.2f}, {r['grid_lon']:.2f}) | Dist: {r['pair_dist_km']:.1f} km"
                 for _, r in catalog.iterrows()
             ],
             hoverinfo="text",
@@ -205,9 +204,9 @@ with tab_map:
         lon=train_pts["lon"],
         mode="markers",
         marker=dict(size=9, color="#2563EB", opacity=0.8),
-        name="Training Grid Cells",
+        name="Training Stations",
         text=[
-            f"Grid #{r['idx_new']} ({r['lat']:.2f}, {r['lon']:.2f})<br>Region: {r['region']}<br>Mean Obs: {r['mean_rain']:.1f} mm/mo"
+            f"Station #{r['idx_new']} ({r['lat']:.2f}, {r['lon']:.2f})<br>Region: {r['region']}<br>Mean Obs: {r['mean_rain']:.1f} mm/mo"
             for _, r in train_pts.iterrows()
         ],
         hoverinfo="text",
@@ -219,12 +218,12 @@ with tab_map:
         lon=test_pts["lon"],
         mode="markers+text",
         marker=dict(size=14, color="#DC2626"),
-        text=[f"P{r['point_id']}" for _, r in test_pts.iterrows()],
+        text=[f"S{r['point_id']}" for _, r in test_pts.iterrows()],
         textposition="top right",
         textfont=dict(size=11, color="#991B1B"),
-        name="9 Hold-Out Test Points",
+        name="9 Test Stations",
         hovertext=[
-            f"P{r['point_id']}: {r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
+            f"Station {r['point_id']}: {r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
             for _, r in test_pts.iterrows()
         ],
         hoverinfo="text",
@@ -239,25 +238,25 @@ with tab_map:
     )
     st.plotly_chart(fig_net, use_container_width=True)
 
-    st.markdown("#### 9 Independent Hold-Out Validation Locations")
+    st.markdown("#### 9 Test Stations")
     st.dataframe(pd.DataFrame(TEST_POINTS), use_container_width=True, hide_index=True)
 
 with tab_arch:
-    st.subheader("DeepKriging Ver 5 Model Configurations")
+    st.subheader("Model Settings (DeepKriging Ver 5)")
     spec_rows = []
     for k in MODEL_ORDER:
         s = MODEL_SPECS[k]
         spec_rows.append({
             "Model": s["label"],
-            "Exogenous Features (#)": len(s["features"]),
-            "Selected Covariates": ", ".join(s["features"]),
-            "Spatial Basis (Wendland C2)": "16 + 64 + 256 (336 knots)",
-            "Training Horizon": "1985–2014 (360 monthly models)",
+            "Weather Variables (#)": len(s["features"]),
+            "Variables Used": ", ".join(s["features"]),
+            "Spatial Basis": "16 + 64 + 256 (Wendland C2)",
+            "Period": "1985–2014 (360 months)",
         })
     st.dataframe(pd.DataFrame(spec_rows), use_container_width=True, hide_index=True)
 
     if not hist_sum.empty:
-        st.subheader("Training Convergence Snapshot (Mean Across 360 Monthly Runs)")
+        st.subheader("Training Summary (Average Over 360 Monthly Runs)")
         conv_tbl = (
             hist_sum.groupby("model", as_index=False)
             .agg(

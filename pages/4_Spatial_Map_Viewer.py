@@ -14,14 +14,14 @@ from src.data_loader import load_era5_grid, load_paired_obs, load_predictions
 from src.ui import download_csv_button, render_footer, render_header
 
 st.set_page_config(
-    page_title=f"{APP_TITLE} | Spatial Map Viewer",
+    page_title=f"{APP_TITLE} | Rainfall Maps",
     page_icon="🗺️",
     layout="wide",
 )
 
 render_header(
-    "🗺️ Spatial Map & Difference Viewer",
-    "Explore 0.25° predicted rainfall fields, inter-model spatial differences, observed station overlays, and ERA5 covariates.",
+    "🗺️ Java Rainfall Maps",
+    "View predicted rainfall across Java, compare models side-by-side, check differences between models, and inspect ERA5 weather variables.",
 )
 
 df_pred = load_predictions()
@@ -32,10 +32,10 @@ if df_pred.empty:
 # ---------------------------------------------------------------------------
 # Sidebar Controls
 # ---------------------------------------------------------------------------
-st.sidebar.header("Map Configuration")
+st.sidebar.header("Map Settings")
 time_agg = st.sidebar.radio(
-    "Temporal Mode",
-    ["Single Month & Year", "Multi-Year Monthly Climatology", "30-Year Overall Mean"],
+    "Time Period",
+    ["Single Month & Year", "Monthly Average (1985–2014)", "30-Year Average (All Months)"],
     key="map_tmode",
 )
 
@@ -47,40 +47,40 @@ if time_agg == "Single Month & Year":
         sel_year = st.selectbox("Year", YEARS, index=YEARS.index(2010), key="map_yr")
     with c2:
         sel_month = st.selectbox("Month", MONTHS, index=0, format_func=lambda m: MONTH_NAMES[m], key="map_mo")
-elif time_agg == "Multi-Year Monthly Climatology":
-    sel_month = st.sidebar.selectbox("Calendar Month", MONTHS, index=0, format_func=lambda m: MONTH_NAMES[m], key="map_mo_clim")
+elif time_agg == "Monthly Average (1985–2014)":
+    sel_month = st.sidebar.selectbox("Month", MONTHS, index=0, format_func=lambda m: MONTH_NAMES[m], key="map_mo_clim")
 
 view_mode = st.sidebar.radio(
-    "Map View Mode",
+    "Map View",
     [
-        "Single Model Map (Interactive / Contour)",
-        "Side-by-Side Model Comparison",
-        "Spatial Difference Map (Model A − Model B)",
-        "ERA5 Exogenous Field Inspector",
+        "Single Model Map",
+        "Compare Models Side-by-Side",
+        "Difference Between Models (A − B)",
+        "Weather Variable Map (ERA5)",
     ],
     key="map_vmode",
 )
 
 render_style = st.sidebar.radio(
-    "Rendering Style",
-    ["Interpolated Contour Surface", "OpenStreetMap Grid Markers"],
+    "Map Style",
+    ["Smooth Contour Map", "OpenStreetMap Grid Points"],
     key="map_render",
 )
-overlay_obs = st.sidebar.checkbox("Overlay 9 Hold-Out Test Stations", value=True, key="map_overlay")
+overlay_obs = st.sidebar.checkbox("Show 9 Test Stations on Map", value=True, key="map_overlay")
 
 # Filter temporal slice
 if time_agg == "Single Month & Year":
     pred_slice = df_pred[(df_pred["year"] == sel_year) & (df_pred["month"] == sel_month)].copy()
     obs_slice = df_obs[(df_obs["year"] == sel_year) & (df_obs["month"] == sel_month)].copy()
     time_label = f"{MONTH_NAMES[sel_month]} {sel_year}"
-elif time_agg == "Multi-Year Monthly Climatology":
+elif time_agg == "Monthly Average (1985–2014)":
     pred_slice = df_pred[df_pred["month"] == sel_month].groupby(["lat", "lon"], as_index=False)[
         [MODEL_SPECS[k]["pred_col"] for k in MODEL_ORDER]
     ].mean()
     obs_slice = df_obs[df_obs["month"] == sel_month].groupby(
         ["lat", "lon", "is_test_point", "point_id", "location_name"], as_index=False
     )["monthly_rainfall"].mean()
-    time_label = f"{MONTH_NAMES[sel_month]} Climatology (1985–2014)"
+    time_label = f"{MONTH_NAMES[sel_month]} Average (1985–2014)"
 else:
     pred_slice = df_pred.groupby(["lat", "lon"], as_index=False)[
         [MODEL_SPECS[k]["pred_col"] for k in MODEL_ORDER]
@@ -88,7 +88,7 @@ else:
     obs_slice = df_obs.groupby(
         ["lat", "lon", "is_test_point", "point_id", "location_name"], as_index=False
     )["monthly_rainfall"].mean()
-    time_label = "30-Year Mean (1985–2014)"
+    time_label = "30-Year Average (1985–2014)"
 
 
 def _plot_contour_plotly(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
@@ -128,11 +128,11 @@ def _plot_contour_plotly(df_pts: pd.DataFrame, val_col: str, title: str, ztitle:
             y=tp["lat"],
             mode="markers+text",
             marker=dict(size=10, color="#111827", symbol="diamond", line=dict(width=1.5, color="#FFFFFF")),
-            text=[f"P{int(r['point_id'])}" for _, r in tp.iterrows()],
+            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
             textposition="top center",
             name="Test Stations (Obs)",
             hovertext=[
-                f"P{int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm"
+                f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm"
                 for _, r in tp.iterrows()
             ],
             hoverinfo="text",
@@ -179,10 +179,10 @@ def _plot_mapbox(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cs
             lon=tp["lon"],
             mode="markers+text",
             marker=dict(size=12, color="#111827"),
-            text=[f"P{int(r['point_id'])}" for _, r in tp.iterrows()],
+            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
             textposition="top right",
             name="9 Test Stations",
-            hovertext=[f"P{int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
+            hovertext=[f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
             hoverinfo="text",
         ))
     fig.update_layout(
@@ -198,24 +198,24 @@ def _plot_mapbox(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cs
 # ---------------------------------------------------------------------------
 # Render Chosen Map View
 # ---------------------------------------------------------------------------
-if view_mode == "Single Model Map (Interactive / Contour)":
+if view_mode == "Single Model Map":
     mk = st.sidebar.selectbox("Select Model", MODEL_ORDER, index=4, format_func=lambda k: MODEL_SPECS[k]["label"])
     pcol = MODEL_SPECS[mk]["pred_col"]
     title = f"{MODEL_SPECS[mk]['label']} — {time_label}"
-    fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Interpolated") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
+    fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
     st.plotly_chart(fig, use_container_width=True)
 
     # Spatial summary KPIs
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Grid Mean", f"{pred_slice[pcol].mean():.1f} mm")
-    c2.metric("Grid Max", f"{pred_slice[pcol].max():.1f} mm")
-    c3.metric("Grid Min", f"{pred_slice[pcol].min():.1f} mm")
-    c4.metric("Spatial Std Dev", f"{pred_slice[pcol].std():.1f} mm")
+    c1.metric("Map Average", f"{pred_slice[pcol].mean():.1f} mm")
+    c2.metric("Map Max", f"{pred_slice[pcol].max():.1f} mm")
+    c3.metric("Map Min", f"{pred_slice[pcol].min():.1f} mm")
+    c4.metric("Spread (Std Dev)", f"{pred_slice[pcol].std():.1f} mm")
 
     if not obs_slice.empty:
         merged_check = obs_slice.merge(pred_slice[["lat", "lon", pcol]], on=["lat", "lon"], how="left")
         merged_check["error"] = merged_check[pcol] - merged_check["monthly_rainfall"]
-        st.subheader("Station Prediction vs Observation Check")
+        st.subheader("Test Station Check (Predicted vs Observed)")
         st.dataframe(
             merged_check[merged_check["is_test_point"]][["point_id", "location_name", "lat", "lon", "monthly_rainfall", pcol, "error"]].sort_values("point_id"),
             use_container_width=True,
@@ -223,7 +223,7 @@ if view_mode == "Single Model Map (Interactive / Contour)":
         )
     download_csv_button(pred_slice, f"spatial_grid_{mk}_{time_label.replace(' ', '_')}.csv")
 
-elif view_mode == "Side-by-Side Model Comparison":
+elif view_mode == "Compare Models Side-by-Side":
     models_cmp = st.sidebar.multiselect(
         "Models to Compare",
         MODEL_ORDER,
@@ -238,10 +238,10 @@ elif view_mode == "Side-by-Side Model Comparison":
         pcol = MODEL_SPECS[mk]["pred_col"]
         title = f"{MODEL_SPECS[mk]['short']} — {time_label}"
         with cols[i % 2]:
-            fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Interpolated") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
+            fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_mapbox(pred_slice, pcol, title, "Rainfall (mm)")
             st.plotly_chart(fig, use_container_width=True)
 
-elif view_mode == "Spatial Difference Map (Model A − Model B)":
+elif view_mode == "Difference Between Models (A − B)":
     c1, c2 = st.sidebar.columns(2)
     with c1:
         m_a = st.selectbox("Model A", MODEL_ORDER, index=4, format_func=lambda k: MODEL_SPECS[k]["short"])
@@ -250,15 +250,15 @@ elif view_mode == "Spatial Difference Map (Model A − Model B)":
 
     diff_df = pred_slice[["lat", "lon"]].copy()
     diff_df["diff"] = pred_slice[MODEL_SPECS[m_a]["pred_col"]] - pred_slice[MODEL_SPECS[m_b]["pred_col"]]
-    title = f"Spatial Difference: {MODEL_SPECS[m_a]['short']} − {MODEL_SPECS[m_b]['short']} ({time_label})"
+    title = f"Difference: {MODEL_SPECS[m_a]['short']} − {MODEL_SPECS[m_b]['short']} ({time_label})"
     fig = (
         _plot_contour_plotly(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
-        if render_style.startswith("Interpolated")
+        if render_style.startswith("Smooth")
         else _plot_mapbox(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
     )
     st.plotly_chart(fig, use_container_width=True)
     st.caption(
-        f"Mean spatial difference: **{diff_df['diff'].mean():+.2f} mm** | "
+        f"Average difference across map: **{diff_df['diff'].mean():+.2f} mm** | "
         f"Range: **[{diff_df['diff'].min():+.2f}, {diff_df['diff'].max():+.2f}] mm**"
     )
 
@@ -268,13 +268,13 @@ else:
         st.stop()
     from src.config import EKSOGEN_20_COLS, EXOGENOUS_INFO
     cov_choice = st.sidebar.selectbox(
-        "ERA5 Exogenous Variable",
+        "Weather Variable (ERA5)",
         EKSOGEN_20_COLS,
         format_func=lambda c: f"{c} — {EXOGENOUS_INFO[c]['name']}",
     )
     if time_agg == "Single Month & Year":
         era_slice = df_era[(df_era["year"] == sel_year) & (df_era["month"] == sel_month)].copy()
-    elif time_agg == "Multi-Year Monthly Climatology":
+    elif time_agg == "Monthly Average (1985–2014)":
         era_slice = df_era[df_era["month"] == sel_month].groupby(["lat", "lon"], as_index=False)[cov_choice].mean()
     else:
         era_slice = df_era.groupby(["lat", "lon"], as_index=False)[cov_choice].mean()
@@ -283,7 +283,7 @@ else:
     title = f"ERA5 {cov_choice} ({EXOGENOUS_INFO[cov_choice]['name']}) — {time_label}"
     fig = (
         _plot_contour_plotly(era_slice, cov_choice, title, unit, cscale="Viridis")
-        if render_style.startswith("Interpolated")
+        if render_style.startswith("Smooth")
         else _plot_mapbox(era_slice, cov_choice, title, unit, cscale="Viridis")
     )
     st.plotly_chart(fig, use_container_width=True)

@@ -19,30 +19,30 @@ from src.ui import (
 )
 
 st.set_page_config(
-    page_title=f"{APP_TITLE} | Monthly Climatology",
+    page_title=f"{APP_TITLE} | Monthly Patterns",
     page_icon="🗓️",
     layout="wide",
 )
 
 render_header(
-    "🗓️ Monthly & Seasonal Climatology Analytics",
-    "Analyze the 12-month annual rainfall cycle, single-month interannual variability, and wet/dry year anomalies.",
+    "🗓️ Monthly & Seasonal Rainfall Patterns",
+    "Explore the 12-month rainfall cycle, year-to-year trends for a single month, and wet/dry year differences.",
 )
 
 df_all = load_paired_with_predictions()
 if df_all.empty:
     st.stop()
 
-st.sidebar.header("Configuration")
+st.sidebar.header("Filters")
 selected_models = sidebar_model_selector(default=MODEL_ORDER, key="clim_models")
 y_start, y_end = sidebar_year_range("clim")
 
-station_opts = ["All 9 Hold-Out Test Points (Mean)", "All Paired Grid Points (Mean)"] + [
-    f"P{p['point_id']}: {p['location_name']}" for p in TEST_POINTS
+station_opts = ["All 9 Test Stations (Average)", "All Stations (Average)"] + [
+    f"S{p['point_id']}: {p['location_name']}" for p in TEST_POINTS
 ]
-station_sel = st.sidebar.selectbox("Spatial Filter", station_opts, key="clim_sta")
+station_sel = st.sidebar.selectbox("Station Selection", station_opts, key="clim_sta")
 focus_month = st.sidebar.selectbox(
-    "Focus Month (for Interannual Tab)",
+    "Month to Inspect (Year-to-Year Tab)",
     MONTHS,
     index=0,
     format_func=lambda m: MONTH_NAMES[m],
@@ -56,16 +56,16 @@ if not selected_models or y_start > y_end:
 df_sub = df_all[(df_all["year"] >= y_start) & (df_all["year"] <= y_end)].copy()
 if station_sel.startswith("All 9"):
     df_sub = df_sub[df_sub["is_test_point"]]
-elif station_sel.startswith("P"):
-    pid = int(station_sel.split(":")[0].replace("P", ""))
+elif station_sel.startswith("S"):
+    pid = int(station_sel.split(":")[0].replace("S", ""))
     df_sub = df_sub[df_sub["point_id"] == pid]
 
 pred_cols = [MODEL_SPECS[k]["pred_col"] for k in selected_models]
 
 tab_cycle, tab_month, tab_anom = st.tabs([
-    "🌦️ 12-Month Climatology Cycle",
-    f"📅 Interannual Trend ({MONTH_NAMES[focus_month]})",
-    "⚡ Wet / Dry Year Anomaly & Skill",
+    "🌦️ Monthly Cycle (Jan–Dec)",
+    f"📅 Year-to-Year Trend ({MONTH_NAMES[focus_month]})",
+    "⚡ Wet & Dry Years",
 ])
 
 with tab_cycle:
@@ -80,7 +80,7 @@ with tab_cycle:
         x=df_cyc["Month"],
         y=df_cyc["monthly_rainfall"],
         mode="lines+markers",
-        name="Observed (Ground Truth)",
+        name="Observed Rainfall",
         line=dict(color=OBS_COLOR, width=3),
         marker=dict(size=7),
     ))
@@ -94,11 +94,11 @@ with tab_cycle:
             line=dict(color=spec["color"], width=2),
         ))
     fig_cyc.update_layout(
-        title=f"Mean Annual Rainfall Cycle ({y_start}–{y_end}) — {station_sel}",
+        title=f"Average Monthly Rainfall ({y_start}–{y_end}) — {station_sel}",
         template="plotly_white",
         hovermode="x unified",
         xaxis_title="Month",
-        yaxis_title="Mean Rainfall (mm/month)",
+        yaxis_title="Average Rainfall (mm/month)",
         height=450,
     )
     st.plotly_chart(fig_cyc, use_container_width=True)
@@ -129,7 +129,7 @@ with tab_cycle:
             color="Model",
             markers=True,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
-            title="Seasonal Error Profile — MAE by Calendar Month",
+            title="Average Error (MAE) by Month",
             template="plotly_white",
         )
         fig_mmae.update_layout(height=380, yaxis_title="MAE (mm)")
@@ -142,7 +142,7 @@ with tab_cycle:
             color="Model",
             barmode="group",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
-            title="Seasonal Bias Profile (Pred − Obs) by Calendar Month",
+            title="Average Bias (Pred − Obs) by Month",
             template="plotly_white",
         )
         fig_mbias.add_hline(y=0, line_dash="dash", line_color="#0F172A")
@@ -171,7 +171,7 @@ with tab_month:
             line=dict(color=spec["color"], width=1.8),
         ))
     fig_my.update_layout(
-        title=f"{MONTH_NAMES[focus_month]} Interannual Rainfall ({y_start}–{y_end}) — {station_sel}",
+        title=f"{MONTH_NAMES[focus_month]} Rainfall Across Years ({y_start}–{y_end}) — {station_sel}",
         template="plotly_white",
         hovermode="x unified",
         xaxis=dict(title="Year", dtick=2),
@@ -181,7 +181,7 @@ with tab_month:
     st.plotly_chart(fig_my, use_container_width=True)
 
     tbl_m = evaluate_models_table(df_m, MODEL_SPECS, selected_models)
-    st.subheader(f"Metrics for {MONTH_NAMES[focus_month]} ({y_start}–{y_end})")
+    st.subheader(f"Accuracy for {MONTH_NAMES[focus_month]} ({y_start}–{y_end})")
     st.dataframe(
         tbl_m.drop(columns=["Model_Key"]).style.format({
             "N": "{:,}", "MAE": "{:.2f}", "RMSE": "{:.2f}",
@@ -196,7 +196,7 @@ with tab_month:
     download_csv_button(df_m_yr, f"climatology_{MONTH_NAMES[focus_month].lower()}.csv")
 
 with tab_anom:
-    st.caption("Annual mean rainfall anomaly relative to the 1985–2014 climatological mean (highlights extreme El Niño dry years like 1997 and La Niña wet years like 2010).")
+    st.caption("Difference from the 1985–2014 average rainfall (shows dry years like El Niño 1997 and wet years like La Niña 2010).")
     df_yr = df_sub.groupby("year", as_index=False).agg({"monthly_rainfall": "mean", **{pc: "mean" for pc in pred_cols}})
     clim_obs = df_yr["monthly_rainfall"].mean()
     df_yr["Obs_Anomaly"] = df_yr["monthly_rainfall"] - clim_obs
@@ -222,11 +222,11 @@ with tab_anom:
         ))
     fig_anom.add_hline(y=0, line_color="#0F172A", line_width=1)
     fig_anom.update_layout(
-        title=f"Annual Rainfall Anomaly Relative to Climatology ({clim_obs:.1f} mm/mo) — {station_sel}",
+        title=f"Yearly Rainfall Difference vs Long-Term Average ({clim_obs:.1f} mm/mo) — {station_sel}",
         template="plotly_white",
         hovermode="x unified",
         xaxis=dict(title="Year", dtick=2),
-        yaxis_title="Anomaly (mm/month)",
+        yaxis_title="Difference from Average (mm/month)",
         height=440,
     )
     st.plotly_chart(fig_anom, use_container_width=True)

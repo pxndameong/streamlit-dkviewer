@@ -19,14 +19,14 @@ from src.ui import (
 )
 
 st.set_page_config(
-    page_title=f"{APP_TITLE} | Training Dynamics",
+    page_title=f"{APP_TITLE} | Training Progress",
     page_icon="📈",
     layout="wide",
 )
 
 render_header(
-    "📈 Training Convergence & Epoch Diagnostics",
-    "Inspect Train vs Test MAE/MSE trajectories across 10,000 epochs, optimal early-stopping epochs, and generalization gaps across 1,800 monthly runs.",
+    "📈 Model Training Progress",
+    "Check how training and test errors change up to 10,000 epochs, and see when the models reach their best accuracy.",
 )
 
 hist_sum = load_history_summary()
@@ -35,15 +35,15 @@ hist_curves = load_history_curves()
 if hist_sum.empty or hist_curves.empty:
     st.stop()
 
-st.sidebar.header("Configuration")
+st.sidebar.header("Filters")
 selected_models = sidebar_model_selector(default=MODEL_ORDER, key="tr_models")
 y_start, y_end = sidebar_year_range("tr")
 
 c1, c2 = st.sidebar.columns(2)
 with c1:
-    inspect_year = st.selectbox("Inspect Year", YEARS, index=YEARS.index(2010), key="tr_iy")
+    inspect_year = st.selectbox("Year", YEARS, index=YEARS.index(2010), key="tr_iy")
 with c2:
-    inspect_month = st.selectbox("Inspect Month", MONTHS, index=0, format_func=lambda m: MONTH_NAMES[m], key="tr_im")
+    inspect_month = st.selectbox("Month", MONTHS, index=0, format_func=lambda m: MONTH_NAMES[m], key="tr_im")
 
 if not selected_models or y_start > y_end:
     st.warning("Select at least one model and a valid year range.")
@@ -57,9 +57,9 @@ df_sum_sub = hist_sum[
 df_sum_sub["Model"] = df_sum_sub["model"].map(lambda k: MODEL_SPECS[k]["label"])
 
 tab_curve, tab_global, tab_overfit = st.tabs([
-    f"🔬 Single-Run Trajectory ({MONTH_NAMES[inspect_month]} {inspect_year})",
-    "📊 Global Convergence Summary (1985–2014)",
-    "⚖️ Optimal Early-Stopping vs Epoch 10,000",
+    f"🔬 Single Month Curve ({MONTH_NAMES[inspect_month]} {inspect_year})",
+    "📊 Overall Summary (1985–2014)",
+    "⚖️ Best Epoch vs Epoch 10,000",
 ])
 
 with tab_curve:
@@ -76,13 +76,13 @@ with tab_curve:
     ].copy()
     run_sum["Model"] = run_sum["model"].map(lambda k: MODEL_SPECS[k]["label"])
 
-    log_x = st.checkbox("Logarithmic Epoch Axis (recommended to inspect early transient)", value=True)
-    metric_pair = st.radio("Curve Metric", ["MAE (mm)", "MSE Loss (mm²)"], horizontal=True)
+    log_x = st.checkbox("Use Log Scale for Epoch Axis (easier to see early steps)", value=True)
+    metric_pair = st.radio("Error Metric", ["MAE (mm)", "MSE Loss (mm²)"], horizontal=True)
 
     fig = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=["Training Set Convergence", "Independent Test Set Convergence (9 Points)"],
+        subplot_titles=["Training Stations Error", "Test Stations Error (9 Stations)"],
         horizontal_spacing=0.08,
     )
 
@@ -126,14 +126,14 @@ with tab_curve:
         fig.update_xaxes(title_text="Epoch")
     fig.update_yaxes(title_text=metric_pair)
     fig.update_layout(
-        title=f"Learning Curves — {MONTH_NAMES[inspect_month]} {inspect_year}",
+        title=f"Training Error Curves — {MONTH_NAMES[inspect_month]} {inspect_year}",
         template="plotly_white",
         hovermode="x unified",
         height=460,
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader(f"Run Summary — {MONTH_NAMES[inspect_month]} {inspect_year}")
+    st.subheader(f"Summary — {MONTH_NAMES[inspect_month]} {inspect_year}")
     st.dataframe(
         run_sum[[
             "Model", "total_epochs", "final_mae_train", "final_mae_test",
@@ -183,10 +183,10 @@ with tab_global:
             y="overfit_gap",
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
-            title="Generalization Gap Distribution (Final Test MAE − Train MAE)",
+            title="Train vs Test Error Gap (Test MAE − Train MAE)",
             template="plotly_white",
         )
-        fig_gap.update_layout(showlegend=False, height=400, yaxis_title="MAE Gap (mm)")
+        fig_gap.update_layout(showlegend=False, height=400, yaxis_title="Error Gap (mm)")
         st.plotly_chart(fig_gap, use_container_width=True)
 
     with c_g2:
@@ -198,16 +198,16 @@ with tab_global:
             barmode="overlay",
             opacity=0.65,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
-            title="Distribution of Optimal Test MAE Epoch Across Runs",
+            title="When Models Reach Best Test Accuracy (Epoch)",
             template="plotly_white",
         )
-        fig_ep.update_layout(height=400, xaxis_title="Best Test MAE Epoch", yaxis_title="Number of Monthly Runs")
+        fig_ep.update_layout(height=400, xaxis_title="Best Epoch", yaxis_title="Number of Monthly Runs")
         st.plotly_chart(fig_ep, use_container_width=True)
 
 with tab_overfit:
     st.caption(
-        "Compares Test MAE achieved at the optimal early-stopping epoch vs Test MAE at the final epoch (10,000). "
-        "Points far above the diagonal indicate potential benefit from early stopping."
+        "Compares the lowest Test MAE during training vs Test MAE at the final epoch (10,000). "
+        "Points above the dashed line mean stopping earlier gives lower error."
     )
     fig_es = px.scatter(
         df_sum_sub,
@@ -216,7 +216,7 @@ with tab_overfit:
         color="Model",
         hover_data=["year", "month", "best_mae_test_epoch", "final_mae_train"],
         color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
-        title=f"Best Early-Stopping Test MAE vs Final Epoch Test MAE ({y_start}–{y_end})",
+        title=f"Best Test MAE vs Final Epoch Test MAE ({y_start}–{y_end})",
         template="plotly_white",
         opacity=0.65,
     )

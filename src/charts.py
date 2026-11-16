@@ -18,7 +18,7 @@ def make_scatter_comparison(
     df: pd.DataFrame,
     model_keys: list[str],
     obs_col: str = "monthly_rainfall",
-    title: str = "Observed vs Predicted Monthly Rainfall (1:1 Fit)",
+    title: str = "Observed vs Predicted Monthly Rainfall",
 ) -> go.Figure:
     n = len(model_keys)
     cols = min(n, 3)
@@ -137,7 +137,7 @@ def make_timeseries_figure(
                 x=df_agg["date"],
                 y=df_agg[obs_col],
                 mode="lines+markers",
-                name="Observed (Ground Truth)",
+                name="Observed Rainfall",
                 line=dict(color=OBS_COLOR, width=2.4),
                 marker=dict(size=4),
             )

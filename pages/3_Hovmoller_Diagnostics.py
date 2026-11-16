@@ -19,42 +19,42 @@ from src.ui import (
 )
 
 st.set_page_config(
-    page_title=f"{APP_TITLE} | Hovmoller Diagnostics",
+    page_title=f"{APP_TITLE} | Time & Station Heatmaps",
     page_icon="🌡️",
     layout="wide",
 )
 
 render_header(
-    "🌡️ Spatio-Temporal Hovmöller Diagnostics",
-    "Visualize temporal evolution of rainfall and prediction error across stations (West-to-East Java) and calendar seasons.",
+    "🌡️ Time & Station Heatmaps",
+    "See how rainfall and prediction errors change across years, months, and stations from West to East Java.",
 )
 
 df_eval = load_paired_with_predictions()
 if df_eval.empty:
     st.stop()
 
-st.sidebar.header("Configuration")
+st.sidebar.header("Filters")
 selected_models = sidebar_model_selector(default=MODEL_ORDER, key="hov_models")
 y_start, y_end = sidebar_year_range("hov")
 
 hov_mode = st.sidebar.radio(
-    "Hovmöller Diagram Type",
+    "Heatmap View",
     [
-        "Year × Hold-Out Stations (West → East)",
-        "Month × Year Seasonal Matrix",
-        "Longitude × Time Propagation (Full 0.25° Grid)",
+        "Year × Test Stations (West → East)",
+        "Month × Year Calendar Grid",
+        "West-to-East Rainfall Over Time (Full Grid)",
     ],
     key="hov_mode",
 )
 
 metric_options = (
     ["MAE", "RMSE", "Mean Bias (Pred - Obs)", "Predicted Rainfall", "Observed Rainfall"]
-    if hov_mode != "Longitude × Time Propagation (Full 0.25° Grid)"
+    if hov_mode != "West-to-East Rainfall Over Time (Full Grid)"
     else ["Predicted Rainfall"]
 )
-metric_choice = st.sidebar.selectbox("Color Metric (Z-Axis)", metric_options, key="hov_metric")
+metric_choice = st.sidebar.selectbox("Value to Show (Color)", metric_options, key="hov_metric")
 
-scale_mode = st.sidebar.radio("Color Scale Range", ["Auto", "Custom"], key="hov_scale")
+scale_mode = st.sidebar.radio("Color Range", ["Auto", "Custom"], key="hov_scale")
 zmin_val, zmax_val = None, None
 if scale_mode == "Custom":
     c1, c2 = st.sidebar.columns(2)
@@ -93,13 +93,13 @@ def _compute_agg_metric(df_g: pd.DataFrame, pred_col: str, metric: str) -> float
 
 
 # ---------------------------------------------------------------------------
-# Mode 1: Year x Hold-Out Stations (sorted West to East)
+# Mode 1: Year x Test Stations (sorted West to East)
 # ---------------------------------------------------------------------------
-if hov_mode == "Year × Hold-Out Stations (West → East)":
+if hov_mode == "Year × Test Stations (West → East)":
     tp_sorted = sorted(TEST_POINTS, key=lambda p: p["lon"])
     tp_labels = [p["short"] for p in tp_sorted]
     selected_pts = st.sidebar.multiselect(
-        "Hold-Out Stations (sorted West → East)",
+        "Test Stations (West → East)",
         options=tp_labels,
         default=tp_labels,
         key="hov_tp",
@@ -180,18 +180,18 @@ if hov_mode == "Year × Hold-Out Stations (West → East)":
 
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
-        title=f"Hovmöller Diagram: {metric_choice} by Year & Station (West → East Java)",
+        title=f"{metric_choice} by Year & Test Station (West → East Java)",
         template="plotly_white",
         height=650,
     )
     st.plotly_chart(fig, use_container_width=True)
-    download_csv_button(pd.DataFrame(export_rows), "hovmoller_year_station.csv")
+    download_csv_button(pd.DataFrame(export_rows), "heatmap_year_station.csv")
 
 # ---------------------------------------------------------------------------
-# Mode 2: Month x Year Seasonal Matrix
+# Mode 2: Month x Year Calendar Grid
 # ---------------------------------------------------------------------------
-elif hov_mode == "Month × Year Seasonal Matrix":
-    scope_m2 = st.sidebar.radio("Grid Scope", ["9 Hold-Out Test Points", "All Paired Grid Points"], key="hov_m2_scope")
+elif hov_mode == "Month × Year Calendar Grid":
+    scope_m2 = st.sidebar.radio("Stations", ["9 Test Stations", "All Stations"], key="hov_m2_scope")
     df_sub = df_eval[(df_eval["year"] >= y_start) & (df_eval["year"] <= y_end)].copy()
     if scope_m2.startswith("9"):
         df_sub = df_sub[df_sub["is_test_point"]]
@@ -248,20 +248,20 @@ elif hov_mode == "Month × Year Seasonal Matrix":
 
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
-        title=f"Seasonal Matrix ({scope_m2}): {metric_choice} Across Months & Years",
+        title=f"{metric_choice} by Month & Year ({scope_m2})",
         template="plotly_white",
         height=650,
     )
     st.plotly_chart(fig, use_container_width=True)
 
 # ---------------------------------------------------------------------------
-# Mode 3: Longitude x Time Propagation across Full 0.25 deg Grid
+# Mode 3: West-to-East Rainfall Over Time across Full 0.25 deg Grid
 # ---------------------------------------------------------------------------
 else:
     df_pred = load_predictions()
     df_pred = df_pred[(df_pred["year"] >= y_start) & (df_pred["year"] <= y_end)].copy()
     df_pred["date"] = pd.to_datetime(df_pred[["year", "month"]].assign(day=1))
-    st.caption("Latitudinally averaged predicted rainfall (mm/month) across all 0.25° grid cells along Java's West–East longitude axis.")
+    st.caption("Average predicted rainfall (mm/month) from West to East Java across the full map grid.")
 
     fig = make_subplots(
         rows=1,
@@ -305,7 +305,7 @@ else:
 
     fig.update_yaxes(title_text="Time", row=1, col=1)
     fig.update_layout(
-        title=f"Longitude × Time Rainfall Propagation Across Java ({y_start}–{y_end})",
+        title=f"West-to-East Rainfall Over Time ({y_start}–{y_end})",
         template="plotly_white",
         height=680,
     )
