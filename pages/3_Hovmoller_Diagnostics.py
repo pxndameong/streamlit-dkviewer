@@ -181,7 +181,8 @@ if hov_mode == "Year × Test Stations (West → East)":
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
         title=f"{metric_choice} by Year & Test Station (West → East Java)",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=650,
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -249,7 +250,8 @@ elif hov_mode == "Month × Year Calendar Grid":
     fig.update_yaxes(title_text="Year", dtick=2, row=1, col=1)
     fig.update_layout(
         title=f"{metric_choice} by Month & Year ({scope_m2})",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=650,
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -306,7 +308,8 @@ else:
     fig.update_yaxes(title_text="Time", row=1, col=1)
     fig.update_layout(
         title=f"West-to-East Rainfall Over Time ({y_start}–{y_end})",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
         height=680,
     )
     st.plotly_chart(fig, use_container_width=True)

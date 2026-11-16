@@ -108,8 +108,8 @@ with tab_leader:
         "CV_RMSE_%": "{:.2f}%",
         "Mean_Obs": "{:.2f}",
         "Mean_Pred": "{:.2f}",
-    }).highlight_min(subset=["MAE", "RMSE", "NRMSE"], color="#DCFCE7").highlight_max(
-        subset=["R2", "KGE", "r"], color="#DBEAFE"
+    }).highlight_min(subset=["MAE", "RMSE", "NRMSE"], color="#14532D").highlight_max(
+        subset=["R2", "KGE", "r"], color="#1E3A8A"
     )
     st.dataframe(styled_tbl, use_container_width=True, hide_index=True)
     download_csv_button(tbl, "dk_v2_model_leaderboard.csv", "⬇️ Download Leaderboard CSV")
@@ -136,7 +136,9 @@ with tab_leader:
         fig_err.update_layout(
             title="Prediction Error by Model (Lower is Better)",
             barmode="group",
-            template="plotly_white",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(15, 23, 42, 0.35)",
             yaxis_title="mm / month",
             height=380,
         )
@@ -163,7 +165,9 @@ with tab_leader:
         fig_skill.update_layout(
             title="Accuracy Scores by Model (Higher is Better)",
             barmode="group",
-            template="plotly_white",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(15, 23, 42, 0.35)",
             yaxis_title="Score",
             yaxis=dict(range=[0, 1.05]),
             height=380,
@@ -220,7 +224,7 @@ with tab_map:
         marker=dict(size=14, color="#DC2626"),
         text=[f"S{r['point_id']}" for _, r in test_pts.iterrows()],
         textposition="top right",
-        textfont=dict(size=11, color="#991B1B"),
+        textfont=dict(size=11, color="#FCA5A5"),
         name="9 Test Stations",
         hovertext=[
             f"Station {r['point_id']}: {r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
@@ -230,7 +234,9 @@ with tab_map:
     ))
 
     fig_net.update_layout(
-        map=dict(style="open-street-map", center=dict(lat=-7.25, lon=109.8), zoom=6.2),
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        map=dict(style="carto-darkmatter", center=dict(lat=-7.25, lon=109.8), zoom=6.2),
         margin=dict(l=0, r=0, t=10, b=0),
         height=520,
         legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="left", x=0),

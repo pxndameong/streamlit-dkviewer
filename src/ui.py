@@ -17,11 +17,11 @@ def inject_custom_css() -> None:
             padding-bottom: 2rem;
         }
         div[data-testid="stMetric"] {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
+            background-color: #1E293B;
+            border: 1px solid #334155;
             border-radius: 10px;
             padding: 12px 16px;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         }
         .dk-badge {
             display: inline-block;
@@ -29,18 +29,18 @@ def inject_custom_css() -> None:
             border-radius: 999px;
             font-size: 0.78rem;
             font-weight: 600;
-            background: #EFF6FF;
-            color: #1D4ED8;
-            border: 1px solid #BFDBFE;
+            background: #1E3A8A;
+            color: #DBEAFE;
+            border: 1px solid #3B82F6;
             margin-right: 6px;
         }
         .dk-footer {
             text-align: center;
-            color: #64748B;
+            color: #94A3B8;
             font-size: 0.85rem;
             margin-top: 2.5rem;
             padding-top: 1rem;
-            border-top: 1px solid #E2E8F0;
+            border-top: 1px solid #334155;
         }
         </style>
         """,

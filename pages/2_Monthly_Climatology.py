@@ -95,7 +95,9 @@ with tab_cycle:
         ))
     fig_cyc.update_layout(
         title=f"Average Monthly Rainfall ({y_start}–{y_end}) — {station_sel}",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15, 23, 42, 0.35)",
         hovermode="x unified",
         xaxis_title="Month",
         yaxis_title="Average Rainfall (mm/month)",
@@ -130,9 +132,9 @@ with tab_cycle:
             markers=True,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Average Error (MAE) by Month",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_mmae.update_layout(height=380, yaxis_title="MAE (mm)")
+        fig_mmae.update_layout(height=380, yaxis_title="MAE (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
         st.plotly_chart(fig_mmae, use_container_width=True)
     with c2:
         fig_mbias = px.bar(
@@ -143,10 +145,10 @@ with tab_cycle:
             barmode="group",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Average Bias (Pred − Obs) by Month",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_mbias.add_hline(y=0, line_dash="dash", line_color="#0F172A")
-        fig_mbias.update_layout(height=380, yaxis_title="Mean Bias (mm)")
+        fig_mbias.add_hline(y=0, line_dash="dash", line_color="#CBD5E1")
+        fig_mbias.update_layout(height=380, yaxis_title="Mean Bias (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
         st.plotly_chart(fig_mbias, use_container_width=True)
 
 with tab_month:
@@ -172,7 +174,9 @@ with tab_month:
         ))
     fig_my.update_layout(
         title=f"{MONTH_NAMES[focus_month]} Rainfall Across Years ({y_start}–{y_end}) — {station_sel}",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15, 23, 42, 0.35)",
         hovermode="x unified",
         xaxis=dict(title="Year", dtick=2),
         yaxis_title="Rainfall (mm)",
@@ -220,10 +224,12 @@ with tab_anom:
             name=f"{spec['short']} Anomaly",
             line=dict(color=spec["color"], width=1.8),
         ))
-    fig_anom.add_hline(y=0, line_color="#0F172A", line_width=1)
+    fig_anom.add_hline(y=0, line_color="#CBD5E1", line_width=1)
     fig_anom.update_layout(
         title=f"Yearly Rainfall Difference vs Long-Term Average ({clim_obs:.1f} mm/mo) — {station_sel}",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15, 23, 42, 0.35)",
         hovermode="x unified",
         xaxis=dict(title="Year", dtick=2),
         yaxis_title="Difference from Average (mm/month)",

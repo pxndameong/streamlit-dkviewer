@@ -105,8 +105,9 @@ with tab_raw:
                 y="monthly_rainfall",
                 color="stanam",
                 title=f"Raw BMKG Station Rainfall — {tp_sel}",
-                template="plotly_white",
+                template="plotly_dark",
             )
+            fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
             st.plotly_chart(fig_raw, use_container_width=True)
         else:
             st_opts = sorted(cat_filt["stanam"].unique())
@@ -120,8 +121,9 @@ with tab_raw:
                     y="monthly_rainfall",
                     markers=True,
                     title=f"Raw Monthly Rainfall — {st_choice} (Elev: {sub_raw['elev'].iloc[0]:.0f} m)",
-                    template="plotly_white",
+                    template="plotly_dark",
                 )
+                fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
                 st.plotly_chart(fig_raw, use_container_width=True)
 
 # ---------------------------------------------------------------------------
@@ -172,11 +174,13 @@ with tab_cov:
                 color="location_name",
                 opacity=0.55,
                 title=f"{cov_x} vs {y_target} (9 Test Stations, 1985–2014)",
-                template="plotly_white",
+                template="plotly_dark",
             )
             fig_cov.update_layout(
                 xaxis_title=f"{cov_x} [{EXOGENOUS_INFO[cov_x]['unit']}]",
                 height=440,
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(15, 23, 42, 0.35)",
             )
             st.plotly_chart(fig_cov, use_container_width=True)
         with col_r:
@@ -217,17 +221,22 @@ with tab_shap:
             color="Tier",
             orientation="h",
             title=f"Top {top_n} Most Important Weather Variables (SHAP)",
-            template="plotly_white",
+            template="plotly_dark",
             color_discrete_map={
                 "1-Var (OLR)": "#64748B",
                 "2-Var": "#2563EB",
                 "5-Var": "#F59E0B",
                 "9-Var": "#10B981",
                 "20-Var": "#DC2626",
-                "Not in Top-20": "#CBD5E1",
+                "Not in Top-20": "#475569",
             },
         )
-        fig_shap.update_layout(height=max(420, top_n * 22), xaxis_title="Mean |SHAP Value|")
+        fig_shap.update_layout(
+            height=max(420, top_n * 22),
+            xaxis_title="Mean |SHAP Value|",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(15, 23, 42, 0.35)",
+        )
         st.plotly_chart(fig_shap, use_container_width=True)
         download_csv_button(shap_df, "global_shap_ranking_all51.csv")
 

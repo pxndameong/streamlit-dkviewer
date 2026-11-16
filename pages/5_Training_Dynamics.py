@@ -127,7 +127,9 @@ with tab_curve:
     fig.update_yaxes(title_text=metric_pair)
     fig.update_layout(
         title=f"Training Error Curves — {MONTH_NAMES[inspect_month]} {inspect_year}",
-        template="plotly_white",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15, 23, 42, 0.35)",
         hovermode="x unified",
         height=460,
     )
@@ -184,9 +186,9 @@ with tab_global:
             color="Model",
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="Train vs Test Error Gap (Test MAE − Train MAE)",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_gap.update_layout(showlegend=False, height=400, yaxis_title="Error Gap (mm)")
+        fig_gap.update_layout(showlegend=False, height=400, yaxis_title="Error Gap (mm)", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
         st.plotly_chart(fig_gap, use_container_width=True)
 
     with c_g2:
@@ -199,9 +201,9 @@ with tab_global:
             opacity=0.65,
             color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
             title="When Models Reach Best Test Accuracy (Epoch)",
-            template="plotly_white",
+            template="plotly_dark",
         )
-        fig_ep.update_layout(height=400, xaxis_title="Best Epoch", yaxis_title="Number of Monthly Runs")
+        fig_ep.update_layout(height=400, xaxis_title="Best Epoch", yaxis_title="Number of Monthly Runs", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(15, 23, 42, 0.35)")
         st.plotly_chart(fig_ep, use_container_width=True)
 
 with tab_overfit:
@@ -217,15 +219,17 @@ with tab_overfit:
         hover_data=["year", "month", "best_mae_test_epoch", "final_mae_train"],
         color_discrete_map={MODEL_SPECS[k]["label"]: MODEL_SPECS[k]["color"] for k in selected_models},
         title=f"Best Test MAE vs Final Epoch Test MAE ({y_start}–{y_end})",
-        template="plotly_white",
+        template="plotly_dark",
         opacity=0.65,
     )
     lim = max(df_sum_sub["final_mae_test"].max(), df_sum_sub["best_mae_test"].max()) * 1.05
-    fig_es.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim, line=dict(dash="dash", color="#0F172A"))
+    fig_es.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim, line=dict(dash="dash", color="#CBD5E1"))
     fig_es.update_layout(
         xaxis_title="Best Test MAE During Training (mm)",
         yaxis_title="Final Test MAE at Epoch 10,000 (mm)",
         height=470,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15, 23, 42, 0.35)",
     )
     st.plotly_chart(fig_es, use_container_width=True)
     download_csv_button(df_sum_sub, "training_convergence_summary.csv")

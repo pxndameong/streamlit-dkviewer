@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import base64
+import io
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.colors as mcolors
+import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from scipy.interpolate import griddata
 import streamlit as st
 
@@ -63,9 +69,15 @@ view_mode = st.sidebar.radio(
 
 render_style = st.sidebar.radio(
     "Map Style",
-    ["Smooth Contour Map", "OpenStreetMap Grid Points"],
+    ["Smooth Heatmap on Map", "Grid Points on Map"],
     key="map_render",
 )
+basemap_choice = st.sidebar.radio(
+    "Base Map",
+    ["Dark Map (Carto)", "Street Map (OSM)"],
+    key="map_basemap",
+)
+basemap_style = "carto-darkmatter" if basemap_choice.startswith("Dark") else "open-street-map"
 overlay_obs = st.sidebar.checkbox("Show 9 Test Stations on Map", value=True, key="map_overlay")
 
 # Filter temporal slice
@@ -91,12 +103,32 @@ else:
     time_label = "30-Year Average (1985–2014)"
 
 
-def _plot_contour_plotly(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
+def _add_test_station_trace(fig: go.Figure) -> None:
+    if overlay_obs and not obs_slice.empty:
+        tp = obs_slice[obs_slice["is_test_point"]]
+        fig.add_trace(go.Scattermap(
+            lat=tp["lat"],
+            lon=tp["lon"],
+            mode="markers+text",
+            marker=dict(size=12, color="#F59E0B"),
+            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
+            textposition="top right",
+            textfont=dict(size=11, color="#FDE68A" if basemap_style == "carto-darkmatter" else "#111827"),
+            name="9 Test Stations",
+            hovertext=[f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
+            hoverinfo="text",
+        ))
+
+
+def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
     lon_u = np.sort(df_pts["lon"].unique())
     lat_u = np.sort(df_pts["lat"].unique())
+    lon_min, lon_max = float(lon_u.min()), float(lon_u.max())
+    lat_min, lat_max = float(lat_u.min()), float(lat_u.max())
+
     grid_lon, grid_lat = np.meshgrid(
-        np.linspace(lon_u.min(), lon_u.max(), 120),
-        np.linspace(lat_u.min(), lat_u.max(), 50),
+        np.linspace(lon_min, lon_max, 240),
+        np.linspace(lat_min, lat_max, 100),
     )
     z_interp = griddata(
         df_pts[["lon", "lat"]].values,
@@ -104,46 +136,73 @@ def _plot_contour_plotly(df_pts: pd.DataFrame, val_col: str, title: str, ztitle:
         (grid_lon, grid_lat),
         method="cubic",
     )
-    zmin_f, zmax_f = None, None
+
     if symmetric:
-        vmax = float(np.nanmax(np.abs(z_interp)))
+        vmax = float(np.nanmax(np.abs(z_interp))) if np.isfinite(z_interp).any() else float(df_pts[val_col].abs().max())
         zmin_f, zmax_f = -vmax, vmax
+    else:
+        zmin_f = float(np.nanmin(z_interp)) if np.isfinite(z_interp).any() else float(df_pts[val_col].min())
+        zmax_f = float(np.nanmax(z_interp)) if np.isfinite(z_interp).any() else float(df_pts[val_col].max())
+
+    # Render interpolated surface to a transparent RGBA PNG placed over the geographic basemap
+    z_flipped = z_interp[::-1, :]
+    cmap_name = "viridis" if cscale == "Viridis" else cscale
+    cmap = matplotlib.colormaps[cmap_name]
+    norm = mcolors.Normalize(vmin=zmin_f, vmax=zmax_f if zmax_f > zmin_f else zmin_f + 1.0, clip=True)
+    rgba = cmap(norm(np.nan_to_num(z_flipped, nan=zmin_f)))
+    rgba[..., 3] = np.where(np.isnan(z_flipped), 0.0, 0.72)
+
+    buf = io.BytesIO()
+    mpimg.imsave(buf, rgba, format="png")
+    img_uri = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
     fig = go.Figure()
-    fig.add_trace(go.Contour(
-        z=z_interp,
-        x=np.linspace(lon_u.min(), lon_u.max(), 120),
-        y=np.linspace(lat_u.min(), lat_u.max(), 50),
-        colorscale=cscale,
-        zmin=zmin_f,
-        zmax=zmax_f,
-        contours=dict(coloring="heatmap", showlines=True, labelfont=dict(size=9)),
-        colorbar=dict(title=ztitle),
-        hovertemplate="Lon: %{x:.2f}°<br>Lat: %{y:.2f}°<br>" + ztitle + ": %{z:.1f}<extra></extra>",
+    # Nearly invisible markers supply exact hover tooltips and the color bar
+    fig.add_trace(go.Scattermap(
+        lat=df_pts["lat"],
+        lon=df_pts["lon"],
+        mode="markers",
+        marker=dict(
+            size=10,
+            color=df_pts[val_col],
+            colorscale=cscale,
+            cmin=zmin_f,
+            cmax=zmax_f,
+            showscale=True,
+            colorbar=dict(title=ztitle),
+            opacity=0.02,
+        ),
+        text=[f"({r['lat']:.2f}, {r['lon']:.2f})<br>{ztitle}: {r[val_col]:.2f}" for _, r in df_pts.iterrows()],
+        hoverinfo="text",
+        name=ztitle,
+        showlegend=False,
     ))
-    if overlay_obs and not obs_slice.empty:
-        tp = obs_slice[obs_slice["is_test_point"]]
-        fig.add_trace(go.Scatter(
-            x=tp["lon"],
-            y=tp["lat"],
-            mode="markers+text",
-            marker=dict(size=10, color="#111827", symbol="diamond", line=dict(width=1.5, color="#FFFFFF")),
-            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
-            textposition="top center",
-            name="Test Stations (Obs)",
-            hovertext=[
-                f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm"
-                for _, r in tp.iterrows()
-            ],
-            hoverinfo="text",
-        ))
+    _add_test_station_trace(fig)
+
     fig.update_layout(
         title=title,
-        template="plotly_white",
-        xaxis_title="Longitude (°E)",
-        yaxis_title="Latitude (°N)",
-        yaxis=dict(scaleanchor="x", scaleratio=1),
-        height=460,
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        map=dict(
+            style=basemap_style,
+            center=dict(lat=-7.25, lon=109.8),
+            zoom=6.1,
+            layers=[
+                {
+                    "sourcetype": "image",
+                    "source": img_uri,
+                    "coordinates": [
+                        [lon_min, lat_max],
+                        [lon_max, lat_max],
+                        [lon_max, lat_min],
+                        [lon_min, lat_min],
+                    ],
+                    "below": "traces",
+                }
+            ],
+        ),
+        margin=dict(l=0, r=0, t=40, b=0),
+        height=490,
     )
     return fig
 
@@ -172,22 +231,12 @@ def _plot_osm_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, c
         hoverinfo="text",
         name=ztitle,
     ))
-    if overlay_obs and not obs_slice.empty:
-        tp = obs_slice[obs_slice["is_test_point"]]
-        fig.add_trace(go.Scattermap(
-            lat=tp["lat"],
-            lon=tp["lon"],
-            mode="markers+text",
-            marker=dict(size=12, color="#111827"),
-            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
-            textposition="top right",
-            name="9 Test Stations",
-            hovertext=[f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
-            hoverinfo="text",
-        ))
+    _add_test_station_trace(fig)
     fig.update_layout(
         title=title,
-        map=dict(style="open-street-map", center=dict(lat=-7.25, lon=109.8), zoom=6.1),
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        map=dict(style=basemap_style, center=dict(lat=-7.25, lon=109.8), zoom=6.1),
         margin=dict(l=0, r=0, t=40, b=0),
         height=490,
     )
@@ -201,7 +250,7 @@ if view_mode == "Single Model Map":
     mk = st.sidebar.selectbox("Select Model", MODEL_ORDER, index=4, format_func=lambda k: MODEL_SPECS[k]["label"])
     pcol = MODEL_SPECS[mk]["pred_col"]
     title = f"{MODEL_SPECS[mk]['label']} — {time_label}"
-    fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
+    fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
     st.plotly_chart(fig, use_container_width=True)
 
     # Spatial summary KPIs
@@ -237,7 +286,7 @@ elif view_mode == "Compare Models Side-by-Side":
         pcol = MODEL_SPECS[mk]["pred_col"]
         title = f"{MODEL_SPECS[mk]['short']} — {time_label}"
         with cols[i % 2]:
-            fig = _plot_contour_plotly(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
+            fig = _plot_smooth_map(pred_slice, pcol, title, "Rainfall (mm)") if render_style.startswith("Smooth") else _plot_osm_map(pred_slice, pcol, title, "Rainfall (mm)")
             st.plotly_chart(fig, use_container_width=True)
 
 elif view_mode == "Difference Between Models (A − B)":
@@ -251,7 +300,7 @@ elif view_mode == "Difference Between Models (A − B)":
     diff_df["diff"] = pred_slice[MODEL_SPECS[m_a]["pred_col"]] - pred_slice[MODEL_SPECS[m_b]["pred_col"]]
     title = f"Difference: {MODEL_SPECS[m_a]['short']} − {MODEL_SPECS[m_b]['short']} ({time_label})"
     fig = (
-        _plot_contour_plotly(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
+        _plot_smooth_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
         if render_style.startswith("Smooth")
         else _plot_osm_map(diff_df, "diff", title, "Diff (mm)", cscale="RdBu_r", symmetric=True)
     )
@@ -281,7 +330,7 @@ else:
     unit = EXOGENOUS_INFO[cov_choice]["unit"]
     title = f"ERA5 {cov_choice} ({EXOGENOUS_INFO[cov_choice]['name']}) — {time_label}"
     fig = (
-        _plot_contour_plotly(era_slice, cov_choice, title, unit, cscale="Viridis")
+        _plot_smooth_map(era_slice, cov_choice, title, unit, cscale="Viridis")
         if render_style.startswith("Smooth")
         else _plot_osm_map(era_slice, cov_choice, title, unit, cscale="Viridis")
     )
