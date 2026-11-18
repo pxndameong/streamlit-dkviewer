@@ -311,6 +311,7 @@ with tab_pts:
             m = compute_metrics(dpt["monthly_rainfall"], dpt[spec["pred_col"]])
             pt_rows.append({
                 "Station": tp["short"],
+                "idx_new": tp["idx_new"],
                 "Location": tp["location_name"],
                 "Lon": tp["lon"],
                 "Lat": tp["lat"],

@@ -229,7 +229,7 @@ def show_overview() -> None:
             lon=test_pts["lon"],
             mode="markers+text",
             marker=dict(size=14, color="#DC2626"),
-            text=[f"S{r['point_id']}" for _, r in test_pts.iterrows()],
+            text=[f"S{int(r['point_id'])} {int(r['idx_new'])}" for _, r in test_pts.iterrows()],
             textposition="top right",
             textfont=dict(size=11, color=p["test_label_color"]),
             name="9 Test Stations",

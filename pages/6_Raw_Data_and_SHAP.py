@@ -96,8 +96,10 @@ with tab_raw:
             )
             pid = int(tp_sel.split(" ")[0].replace("S", ""))
             sub_raw = df_raw[df_raw["point_id"] == pid].copy()
+            tp_info = next((p for p in TEST_POINTS if p["point_id"] == pid), None)
+            tp_name = tp_info["short"] if tp_info else f"Station {pid}"
             st.caption(
-                f"BMKG stations inside Station {pid}: **{', '.join(sorted(sub_raw['stanam'].unique()))}**"
+                f"BMKG stations inside **{tp_name}**: **{', '.join(sorted(sub_raw['stanam'].unique()))}**"
             )
             sub_raw["date"] = pd.to_datetime(sub_raw[["year", "month"]].assign(day=1))
             fig_raw = px.line(

@@ -117,7 +117,7 @@ elif time_agg == "Monthly Average (1985–2014)":
         [MODEL_SPECS[k]["pred_col"] for k in MODEL_ORDER]
     ].mean()
     obs_slice = df_obs[df_obs["month"] == sel_month].groupby(
-        ["lat", "lon", "is_test_point", "point_id", "location_name"], as_index=False
+        ["lat", "lon", "is_test_point", "point_id", "idx_new", "location_name"], as_index=False
     )["monthly_rainfall"].mean()
     time_label = f"{MONTH_NAMES[sel_month]} Average (1985–2014)"
 else:
@@ -125,7 +125,7 @@ else:
         [MODEL_SPECS[k]["pred_col"] for k in MODEL_ORDER]
     ].mean()
     obs_slice = df_obs.groupby(
-        ["lat", "lon", "is_test_point", "point_id", "location_name"], as_index=False
+        ["lat", "lon", "is_test_point", "point_id", "idx_new", "location_name"], as_index=False
     )["monthly_rainfall"].mean()
     time_label = "30-Year Average (1985–2014)"
 
@@ -138,7 +138,7 @@ def _add_test_station_trace(fig: go.Figure) -> None:
             lon=tp["lon"],
             mode="markers+text",
             marker=dict(size=12, color="#F59E0B"),
-            text=[f"S{int(r['point_id'])}" for _, r in tp.iterrows()],
+            text=[f"S{int(r['point_id'])} {int(r['idx_new'])}" for _, r in tp.iterrows()],
             textposition="top right",
             textfont=dict(size=11, color="#FDE68A" if basemap_style == "carto-darkmatter" else "#111827"),
             name="9 Test Stations",
@@ -356,7 +356,7 @@ if view_mode == "Single Model Map":
         merged_check["error"] = merged_check[pcol] - merged_check["monthly_rainfall"]
         st.subheader("Test Station Check (Predicted vs Observed)")
         st.dataframe(
-            merged_check[merged_check["is_test_point"]][["point_id", "location_name", "lat", "lon", "monthly_rainfall", pcol, "error"]].sort_values("point_id"),
+            merged_check[merged_check["is_test_point"]][["point_id", "idx_new", "location_name", "lat", "lon", "monthly_rainfall", pcol, "error"]].sort_values("point_id"),
             use_container_width=True,
             hide_index=True,
         )

@@ -91,15 +91,15 @@ MODEL_SPECS = {
 OBS_COLOR = "#F4F4F5"
 
 TEST_POINTS = [
-    {"point_id": 1, "station_no": 505, "lon": 106.50, "lat": -6.25, "location_name": "S1 505 Tangerang / Bogor (West Java)", "short": "S1 505 Tangerang/Bogor"},
-    {"point_id": 2, "station_no": 417, "lon": 107.00, "lat": -6.75, "location_name": "S2 417 Cianjur / Bandung (West Java)", "short": "S2 417 Cianjur/Bandung"},
-    {"point_id": 3, "station_no": 329, "lon": 107.50, "lat": -7.25, "location_name": "S3 329 Garut / Tasikmalaya (West Java)", "short": "S3 329 Garut/Tasik"},
-    {"point_id": 4, "station_no": 384, "lon": 110.00, "lat": -7.00, "location_name": "S4 384 Semarang (Central Java)", "short": "S4 384 Semarang"},
-    {"point_id": 5, "station_no": 294, "lon": 110.00, "lat": -7.50, "location_name": "S5 294 Sleman / Yogyakarta (DIY)", "short": "S5 294 Sleman/DIY"},
-    {"point_id": 6, "station_no": 256, "lon": 111.75, "lat": -7.75, "location_name": "S6 256 Madiun / Ponorogo (East Java)", "short": "S6 256 Madiun/Ponorogo"},
-    {"point_id": 7, "station_no": 393, "lon": 112.25, "lat": -7.00, "location_name": "S7 393 Gresik / Surabaya (East Java)", "short": "S7 393 Gresik/Surabaya"},
-    {"point_id": 8, "station_no": 168, "lon": 112.25, "lat": -8.25, "location_name": "S8 168 South Malang (East Java)", "short": "S8 168 South Malang"},
-    {"point_id": 9, "station_no": 218, "lon": 113.50, "lat": -8.00, "location_name": "S9 218 Jember / Lumajang (East Java)", "short": "S9 218 Jember/Lumajang"},
+    {"point_id": 1, "idx_new": 505, "station_no": 505, "lon": 106.50, "lat": -6.25, "location_name": "S1 505 Tangerang / Bogor (West Java)", "short": "S1 505 Tangerang/Bogor"},
+    {"point_id": 2, "idx_new": 417, "station_no": 417, "lon": 107.00, "lat": -6.75, "location_name": "S2 417 Cianjur / Bandung (West Java)", "short": "S2 417 Cianjur/Bandung"},
+    {"point_id": 3, "idx_new": 329, "station_no": 329, "lon": 107.50, "lat": -7.25, "location_name": "S3 329 Garut / Tasikmalaya (West Java)", "short": "S3 329 Garut/Tasikmalaya"},
+    {"point_id": 4, "idx_new": 384, "station_no": 384, "lon": 110.00, "lat": -7.00, "location_name": "S4 384 Semarang (Central Java)", "short": "S4 384 Semarang"},
+    {"point_id": 5, "idx_new": 294, "station_no": 294, "lon": 110.00, "lat": -7.50, "location_name": "S5 294 Sleman / Yogyakarta (DIY)", "short": "S5 294 Sleman/Yogyakarta"},
+    {"point_id": 6, "idx_new": 256, "station_no": 256, "lon": 111.75, "lat": -7.75, "location_name": "S6 256 Madiun / Ponorogo (East Java)", "short": "S6 256 Madiun/Ponorogo"},
+    {"point_id": 7, "idx_new": 393, "station_no": 393, "lon": 112.25, "lat": -7.00, "location_name": "S7 393 Gresik / Surabaya (East Java)", "short": "S7 393 Gresik/Surabaya"},
+    {"point_id": 8, "idx_new": 168, "station_no": 168, "lon": 112.25, "lat": -8.25, "location_name": "S8 168 South Malang (East Java)", "short": "S8 168 South Malang"},
+    {"point_id": 9, "idx_new": 218, "station_no": 218, "lon": 113.50, "lat": -8.00, "location_name": "S9 218 Jember / Lumajang (East Java)", "short": "S9 218 Jember/Lumajang"},
 ]
 
 EXOGENOUS_INFO = {
