@@ -68,7 +68,7 @@ def show_overview() -> None:
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Java Map Grid", "675 cells", "0.25° × 0.25° resolution")
     c2.metric("Test Data", f"{len(df_test):,}", "9 Test Stations × 360 months")
-    c3.metric("BMKG Stations", f"{catalog['stanam'].nunique():,}" if not catalog.empty else "—", "Matched to nearest grid")
+    c3.metric("Observation Stations", f"{catalog['stanam'].nunique():,}" if not catalog.empty else "—", "Matched to nearest grid")
     c4.metric("Best Test Error (MAE)", f"{best_mae_row['MAE']:.2f} mm", best_mae_row["Model"])
     c5.metric("Best Test Score (KGE)", f"{best_kge_row['KGE']:.3f}", best_kge_row["Model"])
 
@@ -183,11 +183,11 @@ def show_overview() -> None:
     with tab_map:
         st.subheader("Java Station Map")
         st.caption(
-            "Map of BMKG stations (gray dots), training stations (blue), "
+            "Map of observation stations (gray dots), training stations (blue), "
             "and the 9 test stations excluded from training (red)."
         )
 
-        show_raw = st.checkbox("Show Raw BMKG Stations (486 stations)", value=True)
+        show_raw = st.checkbox("Show Observation Stations (486 stations)", value=True)
         grid_summary = (
             df_eval.groupby(["idx_new", "lat", "lon", "is_test_point", "point_id", "location_name", "region"], as_index=False)
             .agg(mean_rain=("monthly_rainfall", "mean"), n_months=("monthly_rainfall", "count"))
@@ -200,7 +200,7 @@ def show_overview() -> None:
                 lon=catalog["long"],
                 mode="markers",
                 marker=dict(size=5, color="#64748B", opacity=0.55),
-                name="BMKG Stations",
+                name="Observation Stations",
                 text=[
                     f"{r['stanam']} (Elev: {r['elev']:.0f} m)<br>Nearest Grid: ({r['grid_lat']:.2f}, {r['grid_lon']:.2f}) | Dist: {r['pair_dist_km']:.1f} km"
                     for _, r in catalog.iterrows()

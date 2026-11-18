@@ -2,7 +2,7 @@
 
 An interactive, multi-page **Streamlit** dashboard for comparing **DeepKriging Ver 5** monthly rainfall models across Java, Indonesia (`1985–2014`, `0.25° × 0.25°` grid, `675` cells).
 
-Built as a clean, GitHub-ready upgrade over `10k_dkviewer`, featuring simple labels, compressed Parquet datasets, and combined views for model predictions, 9 test stations, raw BMKG station records, ERA5 weather variables, training curves, and SHAP variable rankings.
+Built as a clean, GitHub-ready upgrade over `10k_dkviewer`, featuring simple labels, compressed Parquet datasets, and combined views for model predictions, 9 test stations, raw observation station records, ERA5 weather variables, training curves, and SHAP variable rankings.
 
 ---
 
@@ -10,7 +10,7 @@ Built as a clean, GitHub-ready upgrade over `10k_dkviewer`, featuring simple lab
 
 1. **Overview (`app.py`)**
    - Model accuracy ranking (`MAE`, `RMSE`, `R²`, `KGE`, `r`, `MBE`, `PBIAS%`, `NRMSE`, `CV-RMSE%`).
-   - Interactive Java map showing the **486 BMKG stations**, **training stations**, and **9 test stations**.
+   - Interactive Java map showing the **486 Observation stations**, **training stations**, and **9 test stations**.
    - Summary of model settings and training results across 1,800 monthly runs.
 
 2. **Model Comparison (`pages/1_Model_Comparison.py`)**
@@ -32,8 +32,8 @@ Built as a clean, GitHub-ready upgrade over `10k_dkviewer`, featuring simple lab
    - Inspect training vs test `MAE` and `MSE Loss` curves up to `10,000` epochs.
    - Compare the best epoch during training against the final epoch (`10,000`).
 
-7. **BMKG Stations, Weather Variables & SHAP (`pages/6_Raw_Data_and_SHAP.py`)**
-   - View the 486 raw BMKG stations (`stanam`, `elev`) and how each matches the nearest ERA5 `0.25°` grid cell.
+7. **Observation Stations, Weather Variables & SHAP (`pages/6_Raw_Data_and_SHAP.py`)**
+   - View the 486 raw observation stations (`stanam`, `elev`) and how each matches the nearest ERA5 `0.25°` grid cell.
    - Inspect raw station rainfall over time, correlations with ERA5 weather variables, and the **51-variable SHAP importance ranking**.
 
 ---
@@ -62,7 +62,7 @@ All 5 variants combine spatial basis functions (`[16, 64, 256]`) with the top-$k
 │   ├── 3_Hovmoller_Diagnostics.py      # Year×Station, Month×Year, Lon×Time Hovmöller plots
 │   ├── 4_Spatial_Map_Viewer.py         # Spatial contours, OSM maps, model diff, ERA5 fields
 │   ├── 5_Training_Dynamics.py          # Epoch convergence & early-stopping diagnostics
-│   └── 6_Raw_Data_and_SHAP.py          # Raw BMKG stations, KDTree pairing & SHAP rankings
+│   └── 6_Raw_Data_and_SHAP.py          # Raw observation stations, KDTree pairing & SHAP rankings
 ├── src/
 │   ├── config.py                       # Model specs, 9 test points, ERA5 metadata
 │   ├── data_loader.py                  # Cached Parquet loaders

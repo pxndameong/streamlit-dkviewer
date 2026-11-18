@@ -63,7 +63,7 @@ def load_paired_with_predictions() -> pd.DataFrame:
     return merged
 
 
-@st.cache_data(show_spinner="Loading raw BMKG station records...")
+@st.cache_data(show_spinner="Loading observation station records...")
 def load_raw_stations() -> pd.DataFrame:
     return _read_parquet("raw_stations.parquet")
 

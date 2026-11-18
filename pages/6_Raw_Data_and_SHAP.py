@@ -1,4 +1,4 @@
-"""Page 6: Raw BMKG Stations, KDTree Pairing, Exogenous Covariates & SHAP Importance."""
+"""Page 6: Observation Stations, KDTree Pairing, Exogenous Covariates & SHAP Importance."""
 
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ st.set_page_config(
 )
 
 render_header(
-    "🔬 BMKG Stations, Weather Variables & Feature Importance",
-    "Explore raw BMKG station records, how each station matches the nearest grid cell, ERA5 weather variables, and top predictors (SHAP).",
+    "🔬 Observation Stations, Weather Variables & Feature Importance",
+    "Explore observation station records, how each station matches the nearest grid cell, ERA5 weather variables, and top predictors (SHAP).",
 )
 
 catalog = load_station_catalog()
@@ -34,13 +34,13 @@ df_paired = load_paired_with_predictions()
 shap_df = load_shap_ranking()
 
 tab_raw, tab_cov, tab_shap = st.tabs([
-    "🛰️ BMKG Stations",
+    "🛰️ Observation Stations",
     "🌦️ Weather Variables vs Rainfall",
     "🧠 Most Important Variables (SHAP)",
 ])
 
 # ---------------------------------------------------------------------------
-# Tab 1: BMKG Stations & Nearest Grid
+# Tab 1: Observation Stations & Nearest Grid
 # ---------------------------------------------------------------------------
 with tab_raw:
     if catalog.empty or df_raw.empty:
@@ -79,14 +79,14 @@ with tab_raw:
             use_container_width=True,
             hide_index=True,
         )
-        download_csv_button(cat_filt, "bmkg_station_catalog_filtered.csv")
+        download_csv_button(cat_filt, "observation_station_catalog_filtered.csv")
 
         # Interactive drilldown into a specific station or test grid
         st.markdown("---")
         st.subheader("View Station Rainfall Over Time")
         drill_mode = st.radio(
             "View By",
-            ["Test Station Area (All BMKG Stations Inside)", "Single BMKG Station"],
+            ["Test Station Area (All Observation Stations Inside)", "Single Observation Station"],
             horizontal=True,
         )
         if drill_mode.startswith("Test Station"):
@@ -99,7 +99,7 @@ with tab_raw:
             tp_info = next((p for p in TEST_POINTS if p["point_id"] == pid), None)
             tp_name = tp_info["short"] if tp_info else f"Station {pid}"
             st.caption(
-                f"BMKG stations inside **{tp_name}**: **{', '.join(sorted(sub_raw['stanam'].unique()))}**"
+                f"Observation stations inside **{tp_name}**: **{', '.join(sorted(sub_raw['stanam'].unique()))}**"
             )
             sub_raw["date"] = pd.to_datetime(sub_raw[["year", "month"]].assign(day=1))
             fig_raw = px.line(
@@ -107,7 +107,7 @@ with tab_raw:
                 x="date",
                 y="monthly_rainfall",
                 color="stanam",
-                title=f"Raw BMKG Station Rainfall — {tp_sel}",
+                title=f"Raw Observation Station Rainfall — {tp_sel}",
                 template=get_plotly_template(),
             )
             fig_raw.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
