@@ -19,7 +19,7 @@ import streamlit as st
 from src.config import APP_TITLE, DATA_DIR, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
 from src.data_loader import load_era5_grid, load_paired_obs, load_predictions
 from src.theme import get_plotly_template, get_theme_palette
-from src.ui import download_csv_button, render_chart, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_dataframe, render_footer, render_header
 
 st.set_page_config(
     page_title=f"{APP_TITLE} | Rainfall Maps",
@@ -355,9 +355,8 @@ if view_mode == "Single Model Map":
         merged_check = obs_slice.merge(pred_slice[["lat", "lon", pcol]], on=["lat", "lon"], how="left")
         merged_check["error"] = merged_check[pcol] - merged_check["monthly_rainfall"]
         st.subheader("Test Station Check (Predicted vs Observed)")
-        st.dataframe(
+        render_dataframe(
             merged_check[merged_check["is_test_point"]][["point_id", "idx_new", "location_name", "lat", "lon", "monthly_rainfall", pcol, "error"]].sort_values("point_id"),
-            use_container_width=True,
             hide_index=True,
         )
     download_csv_button(pred_slice, f"spatial_grid_{mk}_{time_label.replace(' ', '_')}.csv")

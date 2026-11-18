@@ -15,7 +15,7 @@ from src.data_loader import (
     load_station_catalog,
 )
 from src.theme import get_plotly_template
-from src.ui import download_csv_button, render_chart, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_dataframe, render_footer, render_header
 
 st.set_page_config(
     page_title=f"{APP_TITLE} | Stations & Variables",
@@ -74,9 +74,8 @@ with tab_raw:
             ]
 
         st.subheader(f"Station List ({len(cat_filt):,} stations)")
-        st.dataframe(
+        render_dataframe(
             cat_filt.sort_values(["is_test_grid", "grid_idx", "stanam"], ascending=[False, True, True]),
-            use_container_width=True,
             hide_index=True,
         )
         download_csv_button(cat_filt, "observation_station_catalog_filtered.csv")
@@ -188,12 +187,11 @@ with tab_cov:
             render_chart(fig_cov)
         with col_r:
             st.markdown("#### Variable Correlation Summary (Test Stations)")
-            st.dataframe(
+            render_dataframe(
                 df_corr.style.format({
                     "Corr w/ Rainfall (r)": "{:+.3f}",
                     "Corr w/ 20-Var |Error| (r)": "{:+.3f}",
                 }),
-                use_container_width=True,
                 hide_index=True,
                 height=400,
             )

@@ -16,6 +16,7 @@ from src.theme import get_plotly_template
 from src.ui import (
     download_csv_button,
     render_chart,
+    render_dataframe,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -163,7 +164,7 @@ else:
 
 metrics_tbl = evaluate_models_table(eval_df, MODEL_SPECS, selected_models)
 
-st.dataframe(
+render_dataframe(
     metrics_tbl.drop(columns=["Model_Key"]).style.format({
         "N": "{:,}",
         "MAE": "{:.2f}",
@@ -178,7 +179,6 @@ st.dataframe(
         "Mean_Obs": "{:.2f}",
         "Mean_Pred": "{:.2f}",
     }).highlight_min(subset=["MAE", "RMSE"], color="#14532D").highlight_max(subset=["R2", "KGE"], color="#3F3F46"),
-    use_container_width=True,
     hide_index=True,
 )
 
@@ -344,7 +344,7 @@ with tab_pts:
 with tab_tbl:
     show_cols = ["year", "month", "idx_new", "lat", "lon", "location_name", "is_test_point", "monthly_rainfall"] + pred_cols
     df_export = df_sub[show_cols].sort_values(["year", "month", "idx_new"])
-    st.dataframe(df_export.head(1000), use_container_width=True, hide_index=True)
+    render_dataframe(df_export.head(1000), hide_index=True)
     st.caption(f"Showing first 1,000 of {len(df_export):,} rows.")
     download_csv_button(df_export, "filtered_paired_predictions.csv", "⬇️ Download Full Filtered Table CSV")
 

@@ -14,6 +14,7 @@ from src.theme import get_plotly_template
 from src.ui import (
     download_csv_button,
     render_chart,
+    render_dataframe,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -138,7 +139,7 @@ with tab_curve:
     render_chart(fig)
 
     st.subheader(f"Summary — {MONTH_NAMES[inspect_month]} {inspect_year}")
-    st.dataframe(
+    render_dataframe(
         run_sum[[
             "Model", "total_epochs", "final_mae_train", "final_mae_test",
             "best_mae_test", "best_mae_test_epoch", "overfit_gap",
@@ -148,7 +149,6 @@ with tab_curve:
             "best_mae_test": "{:.2f}",
             "overfit_gap": "{:+.2f}",
         }),
-        use_container_width=True,
         hide_index=True,
     )
 
@@ -167,7 +167,7 @@ with tab_global:
     agg_sum["order"] = agg_sum["model"].map({k: i for i, k in enumerate(MODEL_ORDER)})
     agg_sum = agg_sum.sort_values("order").drop(columns=["order", "model"])
 
-    st.dataframe(
+    render_dataframe(
         agg_sum.style.format({
             "Mean_Final_Train_MAE": "{:.2f}",
             "Mean_Final_Test_MAE": "{:.2f}",
@@ -175,7 +175,6 @@ with tab_global:
             "Median_Best_Epoch": "{:.0f}",
             "Mean_Overfit_Gap": "{:+.2f}",
         }),
-        use_container_width=True,
         hide_index=True,
     )
 

@@ -311,6 +311,24 @@ def render_chart(fig) -> None:
     st.plotly_chart(fig, use_container_width=True, theme=None)
 
 
+def render_dataframe(data, **kwargs):
+    """Render dataframe across Streamlit versions without use_container_width deprecation warnings."""
+    if "use_container_width" in kwargs or "width" not in kwargs:
+        use_cont = kwargs.pop("use_container_width", True)
+        try:
+            parts = [int(p) for p in st.__version__.split(".")[:2]]
+            is_new = (parts[0], parts[1]) >= (1, 41)
+        except Exception:
+            is_new = False
+
+        if is_new:
+            kwargs["width"] = "stretch" if use_cont else "content"
+        else:
+            kwargs["use_container_width"] = use_cont
+
+    return st.dataframe(data, **kwargs)
+
+
 def download_csv_button(df: pd.DataFrame, filename: str, label: str = "Download CSV") -> None:
     if df.empty:
         return

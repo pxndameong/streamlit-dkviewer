@@ -25,7 +25,7 @@ from src.data_loader import (
 )
 from src.metrics import evaluate_models_table
 from src.theme import get_plotly_template, get_theme_palette
-from src.ui import download_csv_button, render_chart, render_footer, render_header
+from src.ui import download_csv_button, render_chart, render_dataframe, render_footer, render_header
 
 
 def show_overview() -> None:
@@ -117,7 +117,7 @@ def show_overview() -> None:
         }).highlight_min(subset=["MAE", "RMSE", "NRMSE"], color="#14532D").highlight_max(
             subset=["R2", "KGE", "r"], color="#3F3F46"
         )
-        st.dataframe(styled_tbl, use_container_width=True, hide_index=True)
+        render_dataframe(styled_tbl, hide_index=True)
         download_csv_button(tbl, "dk_model_leaderboard.csv", "⬇️ Download Leaderboard CSV")
 
         col_a, col_b = st.columns(2)
@@ -251,7 +251,7 @@ def show_overview() -> None:
         render_chart(fig_net)
 
         st.markdown("#### 9 Test Stations")
-        st.dataframe(pd.DataFrame(TEST_POINTS), use_container_width=True, hide_index=True)
+        render_dataframe(pd.DataFrame(TEST_POINTS), hide_index=True)
 
     with tab_arch:
         st.subheader("Model Settings (DeepKriging Ver 5)")
@@ -265,7 +265,7 @@ def show_overview() -> None:
                 "Spatial Basis": "16 + 64 + 256 (Wendland C2)",
                 "Period": "1985–2014 (360 months)",
             })
-        st.dataframe(pd.DataFrame(spec_rows), use_container_width=True, hide_index=True)
+        render_dataframe(pd.DataFrame(spec_rows), hide_index=True)
 
         if not hist_sum.empty:
             st.subheader("Training Summary (Average Over 360 Monthly Runs)")
@@ -284,7 +284,7 @@ def show_overview() -> None:
             conv_tbl["order"] = conv_tbl["model"].map({k: i for i, k in enumerate(MODEL_ORDER)})
             conv_tbl = conv_tbl.sort_values("order").drop(columns=["order"])
             conv_tbl["model"] = conv_tbl["model"].map(lambda x: MODEL_SPECS[x]["label"])
-            st.dataframe(
+            render_dataframe(
                 conv_tbl.style.format({
                     "Avg_Epochs": "{:.0f}",
                     "Avg_Final_Train_MAE": "{:.2f}",
@@ -293,7 +293,6 @@ def show_overview() -> None:
                     "Avg_Best_Test_Epoch": "{:.0f}",
                     "Avg_Overfit_Gap": "{:+.2f}",
                 }),
-                use_container_width=True,
                 hide_index=True,
             )
 

@@ -14,6 +14,7 @@ from src.theme import get_plotly_template, get_theme_palette
 from src.ui import (
     download_csv_button,
     render_chart,
+    render_dataframe,
     render_footer,
     render_header,
     sidebar_model_selector,
@@ -188,7 +189,7 @@ with tab_month:
 
     tbl_m = evaluate_models_table(df_m, MODEL_SPECS, selected_models)
     st.subheader(f"Accuracy for {MONTH_NAMES[focus_month]} ({y_start}–{y_end})")
-    st.dataframe(
+    render_dataframe(
         tbl_m.drop(columns=["Model_Key"]).style.format({
             "N": "{:,}", "MAE": "{:.2f}", "RMSE": "{:.2f}",
             "R2": "{:.4f}", "KGE": "{:.4f}", "r": "{:.4f}",
@@ -196,7 +197,6 @@ with tab_month:
             "NRMSE": "{:.3f}", "CV_RMSE_%": "{:.2f}%",
             "Mean_Obs": "{:.2f}", "Mean_Pred": "{:.2f}",
         }),
-        use_container_width=True,
         hide_index=True,
     )
     download_csv_button(df_m_yr, f"climatology_{MONTH_NAMES[focus_month].lower()}.csv")
