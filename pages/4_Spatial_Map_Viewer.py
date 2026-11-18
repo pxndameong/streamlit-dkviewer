@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 
 import matplotlib
 matplotlib.use("Agg")
@@ -15,7 +16,7 @@ import plotly.graph_objects as go
 from scipy.interpolate import griddata
 import streamlit as st
 
-from src.config import APP_TITLE, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
+from src.config import APP_TITLE, DATA_DIR, MODEL_ORDER, MODEL_SPECS, MONTHS, MONTH_NAMES, YEARS
 from src.data_loader import load_era5_grid, load_paired_obs, load_predictions
 from src.theme import get_plotly_template, get_theme_palette
 from src.ui import download_csv_button, render_chart, render_footer, render_header
@@ -87,6 +88,24 @@ elif basemap_choice.startswith("Light"):
 else:
     basemap_style = "open-street-map"
 overlay_obs = st.sidebar.checkbox("Show 9 Test Stations on Map", value=True, key="map_overlay")
+mask_land = st.sidebar.checkbox("Mask Ocean (Daratan Saja)", value=True, key="map_mask_land")
+
+
+@st.cache_data(show_spinner=False)
+def _load_land_mask() -> np.ndarray | None:
+    mask_file = DATA_DIR / "java_land_mask_240x100.npy"
+    if mask_file.exists():
+        return np.load(mask_file)
+    return None
+
+
+@st.cache_data(show_spinner=False)
+def _load_land_coords() -> set[tuple[float, float]]:
+    coords_file = DATA_DIR / "java_land_coords.json"
+    if coords_file.exists():
+        with open(coords_file, "r") as f:
+            return {(round(float(lat), 2), round(float(lon), 2)) for lat, lon in json.load(f)}
+    return set()
 
 # Filter temporal slice
 if time_agg == "Single Month & Year":
@@ -123,7 +142,7 @@ def _add_test_station_trace(fig: go.Figure) -> None:
             textposition="top right",
             textfont=dict(size=11, color="#FDE68A" if basemap_style == "carto-darkmatter" else "#111827"),
             name="9 Test Stations",
-            hovertext=[f"Station {int(r['point_id'])}: {r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
+            hovertext=[f"{r['location_name']}<br>Obs: {r['monthly_rainfall']:.1f} mm" for _, r in tp.iterrows()],
             hoverinfo="text",
         ))
 
@@ -145,6 +164,11 @@ def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str
         method="cubic",
     )
 
+    if mask_land:
+        land_mask = _load_land_mask()
+        if land_mask is not None and land_mask.shape == z_interp.shape:
+            z_interp[~land_mask] = np.nan
+
     if symmetric:
         vmax = float(np.nanmax(np.abs(z_interp))) if np.isfinite(z_interp).any() else float(df_pts[val_col].abs().max())
         zmin_f, zmax_f = -vmax, vmax
@@ -164,15 +188,22 @@ def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str
     mpimg.imsave(buf, rgba, format="png")
     img_uri = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
+    # Filter hover markers to land only when mask_land is on
+    df_markers = df_pts
+    if mask_land:
+        land_set = _load_land_coords()
+        if land_set:
+            df_markers = df_pts[df_pts.apply(lambda r: (round(float(r["lat"]), 2), round(float(r["lon"]), 2)) in land_set, axis=1)]
+
     fig = go.Figure()
     # Nearly invisible markers supply exact hover tooltips and the color bar
     fig.add_trace(go.Scattermap(
-        lat=df_pts["lat"],
-        lon=df_pts["lon"],
+        lat=df_markers["lat"],
+        lon=df_markers["lon"],
         mode="markers",
         marker=dict(
             size=10,
-            color=df_pts[val_col],
+            color=df_markers[val_col],
             colorscale=cscale,
             cmin=zmin_f,
             cmax=zmax_f,
@@ -180,7 +211,7 @@ def _plot_smooth_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str
             colorbar=dict(title=ztitle),
             opacity=0.02,
         ),
-        text=[f"({r['lat']:.2f}, {r['lon']:.2f})<br>{ztitle}: {r[val_col]:.2f}" for _, r in df_pts.iterrows()],
+        text=[f"({r['lat']:.2f}, {r['lon']:.2f})<br>{ztitle}: {r[val_col]:.2f}" for _, r in df_markers.iterrows()],
         hoverinfo="text",
         name=ztitle,
         showlegend=False,
@@ -249,6 +280,11 @@ def _build_grid_geojson(lats: tuple[float, ...], lons: tuple[float, ...]) -> dic
 
 
 def _plot_grid_box_map(df_pts: pd.DataFrame, val_col: str, title: str, ztitle: str, cscale: str = "YlGnBu", symmetric: bool = False) -> go.Figure:
+    if mask_land:
+        land_set = _load_land_coords()
+        if land_set:
+            df_pts = df_pts[df_pts.apply(lambda r: (round(float(r["lat"]), 2), round(float(r["lon"]), 2)) in land_set, axis=1)]
+
     df_valid = df_pts.dropna(subset=["lat", "lon", val_col]).reset_index(drop=True)
     zmin, zmax = None, None
     if symmetric and not df_valid.empty:
@@ -302,11 +338,18 @@ if view_mode == "Single Model Map":
     render_chart(fig)
 
     # Spatial summary KPIs
+    kpi_slice = pred_slice
+    if mask_land:
+        land_set = _load_land_coords()
+        if land_set:
+            kpi_slice = pred_slice[pred_slice.apply(lambda r: (round(float(r["lat"]), 2), round(float(r["lon"]), 2)) in land_set, axis=1)]
+
+    lbl_suffix = " (Land)" if mask_land else ""
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Map Average", f"{pred_slice[pcol].mean():.1f} mm")
-    c2.metric("Map Max", f"{pred_slice[pcol].max():.1f} mm")
-    c3.metric("Map Min", f"{pred_slice[pcol].min():.1f} mm")
-    c4.metric("Spread (Std Dev)", f"{pred_slice[pcol].std():.1f} mm")
+    c1.metric(f"Map Average{lbl_suffix}", f"{kpi_slice[pcol].mean():.1f} mm")
+    c2.metric(f"Map Max{lbl_suffix}", f"{kpi_slice[pcol].max():.1f} mm")
+    c3.metric(f"Map Min{lbl_suffix}", f"{kpi_slice[pcol].min():.1f} mm")
+    c4.metric("Spread (Std Dev)", f"{kpi_slice[pcol].std():.1f} mm")
 
     if not obs_slice.empty:
         merged_check = obs_slice.merge(pred_slice[["lat", "lon", pcol]], on=["lat", "lon"], how="left")

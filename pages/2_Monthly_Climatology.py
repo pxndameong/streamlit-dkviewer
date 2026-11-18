@@ -40,7 +40,7 @@ selected_models = sidebar_model_selector(default=MODEL_ORDER, key="clim_models")
 y_start, y_end = sidebar_year_range("clim")
 
 station_opts = ["All 9 Test Stations (Average)", "All Stations (Average)"] + [
-    f"S{p['point_id']}: {p['location_name']}" for p in TEST_POINTS
+    p["short"] for p in TEST_POINTS
 ]
 station_sel = st.sidebar.selectbox("Station Selection", station_opts, key="clim_sta")
 focus_month = st.sidebar.selectbox(
@@ -59,7 +59,7 @@ df_sub = df_all[(df_all["year"] >= y_start) & (df_all["year"] <= y_end)].copy()
 if station_sel.startswith("All 9"):
     df_sub = df_sub[df_sub["is_test_point"]]
 elif station_sel.startswith("S"):
-    pid = int(station_sel.split(":")[0].replace("S", ""))
+    pid = int(station_sel.split(" ")[0].replace("S", ""))
     df_sub = df_sub[df_sub["point_id"] == pid]
 
 pred_cols = [MODEL_SPECS[k]["pred_col"] for k in selected_models]

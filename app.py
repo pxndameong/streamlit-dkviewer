@@ -234,7 +234,7 @@ def show_overview() -> None:
             textfont=dict(size=11, color=p["test_label_color"]),
             name="9 Test Stations",
             hovertext=[
-                f"Station {r['point_id']}: {r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
+                f"{r['location_name']}<br>Coord: ({r['lat']:.2f}, {r['lon']:.2f})<br>Mean Obs: {r['mean_rain']:.1f} mm/mo ({r['n_months']} mo)"
                 for _, r in test_pts.iterrows()
             ],
             hoverinfo="text",

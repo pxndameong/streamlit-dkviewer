@@ -49,6 +49,7 @@ season_months = sidebar_season_filter("cmp_season")
 scope_mode = st.sidebar.radio(
     "Station Selection",
     [
+        "All 9 Test Stations (Merge)",
         "All 9 Test Stations (Average)",
         "Single Test Station",
         "All Training Stations (Average)",
@@ -60,7 +61,7 @@ scope_mode = st.sidebar.radio(
 
 selected_point_label = None
 if scope_mode == "Single Test Station":
-    tp_options = [f"S{p['point_id']}: {p['location_name']} ({p['lat']:.2f}, {p['lon']:.2f})" for p in TEST_POINTS]
+    tp_options = [f"{p['short']} ({p['lat']:.2f}, {p['lon']:.2f})" for p in TEST_POINTS]
     selected_point_label = st.sidebar.selectbox("Select Test Station", tp_options, key="cmp_tp")
 elif scope_mode == "Single Training Station":
     train_pts = (
@@ -92,11 +93,26 @@ df_sub = df_all[
     & (df_all["month"].isin(season_months))
 ].copy()
 
-if scope_mode == "All 9 Test Stations (Average)":
+pred_cols = [MODEL_SPECS[k]["pred_col"] for k in selected_models]
+
+if scope_mode == "All 9 Test Stations (Merge)":
     df_sub = df_sub[df_sub["is_test_point"]].copy()
-    scope_title = "All 9 Test Stations"
+    scope_title = "All 9 Test Stations (Merge)"
+elif scope_mode == "All 9 Test Stations (Average)":
+    # 9 stasiun di-rata-ratakan terlebih dahulu per bulan, baru kemudian dihitung metric
+    df_tp = df_sub[df_sub["is_test_point"]].copy()
+    agg_init = {"monthly_rainfall": "mean"}
+    for pc in pred_cols:
+        agg_init[pc] = "mean"
+    df_sub = df_tp.groupby(["year", "month", "date"], as_index=False).agg(agg_init).sort_values("date")
+    df_sub["location_name"] = "All 9 Test Stations (Average)"
+    df_sub["idx_new"] = 0
+    df_sub["lat"] = -7.25
+    df_sub["lon"] = 110.0
+    df_sub["is_test_point"] = True
+    scope_title = "All 9 Test Stations (Average)"
 elif scope_mode == "Single Test Station":
-    pid = int(selected_point_label.split(":")[0].replace("S", ""))
+    pid = int(selected_point_label.split(" ")[0].replace("S", ""))
     df_sub = df_sub[df_sub["point_id"] == pid].copy()
     scope_title = selected_point_label
 elif scope_mode == "All Training Stations (Average)":
@@ -117,22 +133,34 @@ if df_sub.empty:
     st.stop()
 
 # Aggregate by month-year for time series view
-pred_cols = [MODEL_SPECS[k]["pred_col"] for k in selected_models]
-agg_dict = {"monthly_rainfall": "mean"}
-for pc in pred_cols:
-    agg_dict[pc] = "mean"
-df_ts = df_sub.groupby(["year", "month", "date"], as_index=False).agg(agg_dict).sort_values("date")
+if scope_mode == "All 9 Test Stations (Average)":
+    df_ts = df_sub.copy()
+else:
+    agg_dict = {"monthly_rainfall": "mean"}
+    for pc in pred_cols:
+        agg_dict[pc] = "mean"
+    df_ts = df_sub.groupby(["year", "month", "date"], as_index=False).agg(agg_dict).sort_values("date")
 
 # ---------------------------------------------------------------------------
 # Metrics Table (Point-Month Level vs Spatial-Mean Level)
 # ---------------------------------------------------------------------------
 st.subheader(f"Accuracy Metrics — {scope_title} ({y_start}–{y_end})")
-metric_basis = st.radio(
-    "Calculate Metrics Using",
-    ["All Station-Months", "Monthly Average Across Stations"],
-    horizontal=True,
-)
-eval_df = df_sub if metric_basis.startswith("All Station") else df_ts
+if scope_mode == "All 9 Test Stations (Average)":
+    eval_df = df_sub
+    st.info("💡 **Metode Perhitungan:** Data dari ke-9 stasiun uji dirata-ratakan terlebih dahulu per bulan (1985–2014), kemudian metrik akurasi (MAE, RMSE, R², KGE, dll) dihitung dari deret waktu bulanan rata-rata tersebut.")
+elif scope_mode == "All 9 Test Stations (Merge)":
+    eval_df = df_sub
+    st.info("💡 **Metode Perhitungan:** Seluruh baris data observasi dan prediksi dari ke-9 stasiun uji digabungkan langsung (merged/pooled) tanpa dirata-ratakan terlebih dahulu.")
+elif scope_mode in ("Single Test Station", "Single Training Station"):
+    eval_df = df_sub
+else:
+    metric_basis = st.radio(
+        "Calculate Metrics Using",
+        ["All Station-Months", "Monthly Average Across Stations"],
+        horizontal=True,
+    )
+    eval_df = df_sub if metric_basis.startswith("All Station") else df_ts
+
 metrics_tbl = evaluate_models_table(eval_df, MODEL_SPECS, selected_models)
 
 st.dataframe(
@@ -282,7 +310,7 @@ with tab_pts:
             spec = MODEL_SPECS[mk]
             m = compute_metrics(dpt["monthly_rainfall"], dpt[spec["pred_col"]])
             pt_rows.append({
-                "Station": f"S{tp['point_id']}",
+                "Station": tp["short"],
                 "Location": tp["location_name"],
                 "Lon": tp["lon"],
                 "Lat": tp["lat"],

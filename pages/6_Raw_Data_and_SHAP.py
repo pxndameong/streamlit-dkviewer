@@ -92,9 +92,9 @@ with tab_raw:
         if drill_mode.startswith("Test Station"):
             tp_sel = st.selectbox(
                 "Select Test Station",
-                [f"S{p['point_id']}: {p['location_name']}" for p in TEST_POINTS],
+                [p["short"] for p in TEST_POINTS],
             )
-            pid = int(tp_sel.split(":")[0].replace("S", ""))
+            pid = int(tp_sel.split(" ")[0].replace("S", ""))
             sub_raw = df_raw[df_raw["point_id"] == pid].copy()
             st.caption(
                 f"BMKG stations inside Station {pid}: **{', '.join(sorted(sub_raw['stanam'].unique()))}**"

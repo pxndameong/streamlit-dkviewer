@@ -33,6 +33,9 @@ def load_predictions() -> pd.DataFrame:
     if not df.empty:
         df["lat"] = df["lat"].round(4)
         df["lon"] = df["lon"].round(4)
+        for col in df.columns:
+            if col.startswith("pred_"):
+                df[col] = df[col].clip(lower=0.0)
     return df
 
 

@@ -64,15 +64,15 @@ MODEL_FEATURE_COUNTS = {
 
 # 9 Independent Hold-out Test Points (points_to_remove in training scripts)
 TEST_POINTS = [
-    {"point_id": 1, "lon": 106.50, "lat": -6.25, "location_name": "Tangerang / Bogor (West Java)"},
-    {"point_id": 2, "lon": 107.00, "lat": -6.75, "location_name": "Cianjur / Bandung (West Java)"},
-    {"point_id": 3, "lon": 107.50, "lat": -7.25, "location_name": "Garut / Tasikmalaya (West Java)"},
-    {"point_id": 4, "lon": 110.00, "lat": -7.00, "location_name": "Semarang (Central Java)"},
-    {"point_id": 5, "lon": 110.00, "lat": -7.50, "location_name": "Sleman / Yogyakarta (DIY)"},
-    {"point_id": 6, "lon": 111.75, "lat": -7.75, "location_name": "Madiun / Ponorogo (East Java)"},
-    {"point_id": 7, "lon": 112.25, "lat": -7.00, "location_name": "Gresik / Surabaya (East Java)"},
-    {"point_id": 8, "lon": 112.25, "lat": -8.25, "location_name": "South Malang (East Java)"},
-    {"point_id": 9, "lon": 113.50, "lat": -8.00, "location_name": "Jember / Lumajang (East Java)"},
+    {"point_id": 1, "station_no": 505, "lon": 106.50, "lat": -6.25, "location_name": "S1 505 Tangerang / Bogor (West Java)", "short": "S1 505 Tangerang/Bogor"},
+    {"point_id": 2, "station_no": 417, "lon": 107.00, "lat": -6.75, "location_name": "S2 417 Cianjur / Bandung (West Java)", "short": "S2 417 Cianjur/Bandung"},
+    {"point_id": 3, "station_no": 329, "lon": 107.50, "lat": -7.25, "location_name": "S3 329 Garut / Tasikmalaya (West Java)", "short": "S3 329 Garut/Tasik"},
+    {"point_id": 4, "station_no": 384, "lon": 110.00, "lat": -7.00, "location_name": "S4 384 Semarang (Central Java)", "short": "S4 384 Semarang"},
+    {"point_id": 5, "station_no": 294, "lon": 110.00, "lat": -7.50, "location_name": "S5 294 Sleman / Yogyakarta (DIY)", "short": "S5 294 Sleman/DIY"},
+    {"point_id": 6, "station_no": 256, "lon": 111.75, "lat": -7.75, "location_name": "S6 256 Madiun / Ponorogo (East Java)", "short": "S6 256 Madiun/Ponorogo"},
+    {"point_id": 7, "station_no": 393, "lon": 112.25, "lat": -7.00, "location_name": "S7 393 Gresik / Surabaya (East Java)", "short": "S7 393 Gresik/Surabaya"},
+    {"point_id": 8, "station_no": 168, "lon": 112.25, "lat": -8.25, "location_name": "S8 168 South Malang (East Java)", "short": "S8 168 South Malang"},
+    {"point_id": 9, "station_no": 218, "lon": 113.50, "lat": -8.00, "location_name": "S9 218 Jember / Lumajang (East Java)", "short": "S9 218 Jember/Lumajang"},
 ]
 TEST_POINT_MAP = {(round(p["lon"], 4), round(p["lat"], 4)): p for p in TEST_POINTS}
 
@@ -114,7 +114,7 @@ def build_predictions() -> dict:
                 })
                 df["lat"] = df["lat"].round(4).astype(np.float32)
                 df["lon"] = df["lon"].round(4).astype(np.float32)
-                df[f"pred_{model_key}"] = df[f"pred_{model_key}"].astype(np.float32)
+                df[f"pred_{model_key}"] = df[f"pred_{model_key}"].clip(lower=0.0).astype(np.float32)
 
                 if merged is None:
                     merged = df[["lat", "lon", f"pred_{model_key}"]]
